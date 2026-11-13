@@ -1,32 +1,56 @@
 import { create } from 'zustand';
 import { useMemo } from 'react';
 import { SITE_BY_ID, type SiteRecord } from '@/data/sites';
+import { readUrlState, writeUrlState } from './url';
+import { SYNODIC_MONTH_DAYS } from '@/astro';
 
 export interface CustomSite { lat: number; lon: number; heightKm?: number }
 export type ViewMode = 'globe' | 'polar';
+export type Span = 'day' | 'month' | 'year';
+export type Mode = 'planner' | 'explorer';
 export interface ActiveSite { id: string; name: string; lat: number; lon: number; heightKm: number; record?: SiteRecord }
+export const SPAN_MS: Record<Span, number> = { day: 86400_000, month: SYNODIC_MONTH_DAYS * 86400_000, year: 365.25 * 86400_000 };
+export const SPEEDS = [60, 600, 3600, 6 * 3600, 86400, 7 * 86400] as const; // simulated seconds per real second
 
 interface State {
-  timeMs: number; setTime: (ms: number) => void;
+  timeMs: number; setTime: (ms: number) => void; stepTime: (deltaMs: number) => void;
+  playing: boolean; speed: number; togglePlay: () => void; setSpeed: (s: number) => void;
   siteId: string; custom: CustomSite | null;
   selectSite: (id: string) => void; setCustom: (c: CustomSite) => void;
   view: ViewMode; setView: (v: ViewMode) => void;
+  span: Span; setSpan: (s: Span) => void;
+  windowDays: number; setWindowDays: (d: number) => void;
+  sunsetDef: 'center' | 'limb'; setSunsetDef: (d: 'center' | 'limb') => void;
+  earthMarginDeg: number; setEarthMargin: (d: number) => void;
+  mode: Mode; setMode: (m: Mode) => void;
   showGrid: boolean; toggleGrid: () => void;
   hoverSiteId: string | null; setHover: (id: string | null) => void;
-  flyToken: number; // bumps to request a camera fly-to
-  zoomNear: boolean; // camera close enough to show all labels
+  flyToken: number; zoomNear: boolean; ephemReady: boolean;
 }
 
+const url = readUrlState();
 export const useStore = create<State>((set) => ({
-  timeMs: Date.now(), setTime: (timeMs) => set({ timeMs }),
-  siteId: 'artemis-cr', custom: null,
+  timeMs: url.timeMs ?? Date.now(), setTime: (timeMs) => set({ timeMs }), stepTime: (d) => set((s) => ({ timeMs: s.timeMs + d })),
+  playing: false, speed: 3600, togglePlay: () => set((s) => ({ playing: !s.playing })), setSpeed: (speed) => set({ speed }),
+  siteId: url.siteId ?? 'artemis-cr', custom: url.custom ?? null,
   selectSite: (siteId) => set((s) => ({ siteId, flyToken: s.flyToken + 1 })),
   setCustom: (custom) => set((s) => ({ custom, siteId: 'custom', flyToken: s.flyToken + 1 })),
-  view: 'globe', setView: (view) => set((s) => ({ view, flyToken: s.flyToken + 1 })),
+  view: url.view ?? 'globe', setView: (view) => set((s) => ({ view, flyToken: s.flyToken + 1 })),
+  span: url.span ?? 'month', setSpan: (span) => set({ span }),
+  windowDays: url.windowDays ?? 14, setWindowDays: (windowDays) => set({ windowDays }),
+  sunsetDef: url.sunsetDef ?? 'center', setSunsetDef: (sunsetDef) => set({ sunsetDef }),
+  earthMarginDeg: url.earthMarginDeg ?? 0, setEarthMargin: (earthMarginDeg) => set({ earthMarginDeg }),
+  mode: url.mode ?? 'planner', setMode: (mode) => set({ mode }),
   showGrid: false, toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
   hoverSiteId: null, setHover: (hoverSiteId) => set({ hoverSiteId }),
-  flyToken: 0, zoomNear: false,
+  flyToken: 0, zoomNear: false, ephemReady: false,
 }));
+
+// URL sync (throttled)
+if (typeof window !== 'undefined') {
+  let timer: number | undefined;
+  useStore.subscribe((s) => { window.clearTimeout(timer); timer = window.setTimeout(() => writeUrlState(s), 400); });
+}
 
 export function resolveSite(siteId: string, custom: CustomSite | null): ActiveSite {
   if (siteId === 'custom' && custom) return { id: 'custom', name: 'Custom site', lat: custom.lat, lon: custom.lon, heightKm: custom.heightKm ?? 0 };

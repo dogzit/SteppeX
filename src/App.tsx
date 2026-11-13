@@ -1,14 +1,30 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Hud } from './ui/Hud';
 import { SitePanel } from './ui/SitePanel';
-import { SiteCard } from './ui/SiteCard';
+import { Dashboard } from './ui/Dashboard';
+import { Timeline } from './ui/Timeline';
+import { useStore } from './state/store';
+import { loadEphemTable } from './state/ephemLoader';
 const Globe = lazy(() => import('./scenes/Globe'));
 
 function hasWebGL() { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } }
 
+/** Advances simulated time while playing (sim seconds per real second = speed). */
+function usePlayback() {
+  const playing = useStore((s) => s.playing);
+  useEffect(() => {
+    if (!playing) return;
+    let last = performance.now(), raf = 0;
+    const tick = (now: number) => { const { speed, stepTime } = useStore.getState(); stepTime((now - last) * speed); last = now; raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing]);
+}
+
 export default function App() {
   const [gl, setGl] = useState<boolean | null>(null);
-  useEffect(() => setGl(hasWebGL()), []);
+  useEffect(() => { setGl(hasWebGL()); void loadEphemTable(); }, []);
+  usePlayback();
   return (
     <div className="relative h-full w-full hud-grid">
       {gl === false ? (
@@ -18,7 +34,8 @@ export default function App() {
       )}
       <Hud />
       <SitePanel />
-      <SiteCard />
+      <Dashboard />
+      <Timeline />
       <div className="grain" aria-hidden />
     </div>
   );

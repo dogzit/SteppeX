@@ -9,3 +9,6 @@
 | 6 | Viability weights 40/30/15/15 (sun, Earth, continuity, margin), 14-day window | Transparent, editable in Planner mode |
 | 7 | All times UTC; default date = now, presets for IM-1, Blue Ghost, Chandrayaan-3, Artemis III (2027) | Presets double as sanity checks |
 | 8 | Vercel default, GH Pages via BASE_PATH | Both static; zero config |
+| 9 | Window stats + event search recomputed per simulated hour (or when an event passes); instantaneous values every frame | Keeps playback at 60 fps; bisection refinement costs ~8 ms per site |
+| 10 | Spherical fallback horizon = 0° everywhere (no dip for elevated sites) | A plateau site sees level terrain nearby; the true dip/obstruction comes from the DEM in slice 4 |
+| 11 | Timeline sampling: day 2 min, lunar month 20 min, year 2 h; window stats 10 min; event search 1 h grid + bisection to 1 s | Resolution vs. instant response; sub-step terrain flicker in the year view is documented |

@@ -11,7 +11,7 @@ export function SitePanel() {
   const [lon, setLon] = useState(custom ? String(custom.lon) : '0');
   const filtered = SITES.filter((s) => s.name.toLowerCase().includes(q.toLowerCase()));
   return (
-    <aside className="absolute left-4 top-28 bottom-6 z-20 w-80 glass rounded-xl flex flex-col overflow-hidden" aria-label="Site library">
+    <aside className="absolute left-4 top-28 bottom-36 z-20 w-80 glass rounded-xl flex flex-col overflow-hidden" aria-label="Site library">
       <div className="p-3 border-b border-white/10">
         <div className="label mb-1">Site library · {SITES.length} sites</div>
         <input aria-label="Search sites" placeholder="Search sites…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1.5 text-sm outline-none focus:border-solar/60" />

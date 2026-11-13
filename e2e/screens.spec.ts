@@ -1,21 +1,22 @@
 import { test, expect } from '@playwright/test';
 test.describe.configure({ mode: 'serial' });
-test('globe renders and south pole view', async ({ page }) => {
-  await page.goto('/');
+const T = '2026-11-20T12:00Z';
+test('globe, dashboard, timeline', async ({ page }) => {
+  await page.goto(`/?site=artemis-cr&t=${T}`);
   await expect(page.getByText('NAVIGATOR')).toBeVisible();
   await page.waitForTimeout(4500);
   await page.screenshot({ path: 'docs/screens/01-globe.png' });
+  await expect(page.getByText('Viability')).toBeVisible();
   await page.getByRole('button', { name: 'South pole', exact: true }).click();
   await page.waitForTimeout(3000);
   await page.screenshot({ path: 'docs/screens/02-polar.png' });
-  await page.getByRole('button', { name: 'Grid' }).click();
+  await page.getByRole('button', { name: 'Year' }).click();
   await page.getByRole('button', { name: /Chandrayaan-3/ }).click();
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(2500);
   await page.screenshot({ path: 'docs/screens/03-site.png' });
-  // click-to-drop a custom pin near the centre of the globe
   await page.mouse.click(760, 420);
   await page.waitForTimeout(1500);
   await expect(page.getByText('Custom site')).toBeVisible();
-  const labels = await page.locator('.pin-label').count();
-  expect(labels).toBeGreaterThan(0);
+  expect(await page.locator('.pin-label').count()).toBeGreaterThan(0);
+  expect(page.url()).toContain('lat=');
 });
