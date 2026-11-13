@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "data": "tsx scripts/build-data.ts",
-    "data:ephem": "tsx scripts/build-ephemeris.ts"
+    "data:ephem": "tsx scripts/build-ephemeris.ts",
+    "data:textures": "tsx scripts/build-normalmap.ts && python3 scripts/build-textures.py"
   },
   "keywords": [],
   "author": "",
