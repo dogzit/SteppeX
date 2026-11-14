@@ -3,7 +3,7 @@
  * Any site at any time then needs only 3 dot products + a horizon lookup, which makes timelines and
  * scenario comparison effectively free. Layout per sample (8 x int16, little-endian):
  *   [sunX, sunY, sunZ] * 32767 (unit), [earthX, earthY, earthZ] * 32767 (unit), earthDistKm - 380000, 0
- * Linear interpolation between hourly samples has < 0.001° error (Sun moves 0.5°/h).
+ * Linear interpolation between hourly samples plus Int16 quantisation: max 0.0015° error vs the exact path (measured over 60,000 random times).
  */
 import { moonState, norm, unit, type Vec3 } from './moonFrame';
 

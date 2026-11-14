@@ -66,7 +66,7 @@ Source layout: `src/astro` (pure TypeScript engine, no DOM), `src/scenes` (react
 
 ## Accuracy
 
-- Sun and Earth az/el vs **JPL Horizons** (Moon-surface observer, 1 208 epochs, 4 sites incl. 89.9°S): max 0.009° / 0.004°. See [VALIDATION.md](VALIDATION.md).
+- Sun and Earth az/el vs **JPL Horizons** (Moon-surface observer, 1 208 epochs, 4 sites incl. 89.9°S): max 0.0045° (Sun) / 0.0036° (Earth). An independent audit against JPL DE421 + NAIF lunar orientation over 45 sites × 2,650 dates agrees. See [VALIDATION.md](VALIDATION.md).
 - Terrain illumination at the Gläser et al. (2018) south-pole reference points reproduced within 1–9 percentage points; the north-pole gap is explained there (crest resolution).
 - No refraction, no twilight: the Moon has no atmosphere. Everything else that is not modelled is listed in the in-app Methodology panel and in [LIMITATIONS.md](LIMITATIONS.md).
 

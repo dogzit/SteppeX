@@ -30,7 +30,16 @@ ${rows}
 
 ## Interpretation
 - Earth residual (~0.004°) is the accuracy of the analytic Moon-position series relative to DE441 — well below the 1.9° Earth disc.
-- Sun residual (~0.009°) is dominated by light-time + stellar aberration, which Horizons includes and we do not (expected magnitude ≈ v/c ≈ 0.006°). It shifts sunrise/sunset timing at the south pole by well under a minute, far smaller than DEM-induced horizon uncertainty.
+- Sun residual (~0.0045°): light-time and annual aberration are applied (aberration for the geocentre; the Moon's heliocentric velocity differs by ~1 km/s, ≈0.0007°). The rest is the analytic series vs DE441. Before aberration was added the Sun residual was 0.009°.
+- What this means for event times: at low and mid latitudes the Sun moves ~0.5°/h, so 0.005° is well under a minute. At the poles the Sun skims the horizon at a very shallow angle, so the same tiny angle error moves a sunrise or sunset by minutes, and by up to ~30 min when the Sun just grazes a ridge. The DEM resolution (40–720 m) is a much larger source of timing uncertainty there. Event times are found to ±1 s *precision* by bisection; that is not their *accuracy*.
+
+## Independent audit (Nov 2026)
+A separate reference built from JPL DE421 positions and NAIF's lunar orientation kernel (moon_pa_de421, frame MOON_ME_DE421) via Skyfield. It reproduces the committed Horizons fixtures to 0.00004°.
+- Sun and Earth az/el, 45 sites × 2,650 epochs (1969–2048, both poles, lon ±180°): Sun max 0.0094°, Earth max 0.0042° (before the aberration change).
+- Hourly table (ephem.bin) vs the exact path, 60,000 random times: max 0.0015°.
+- 14-day dashboard metrics, 11 sites × 8 dates: within 0.2 percentage points.
+- Horizon sweep vs an independent implementation on the same tile: identical.
+- Found and fixed: event refinement could return the far edge of an hour bracket (up to ~1 h late) when the table and the exact ephemeris disagreed by a hair at a grazing crossing; the horizon sweep was degenerate at exactly ±90° latitude; windows still open at the end of a period were reported one step too long. Regression tests: tests/audit-regressions.test.ts.
 - Topocentric parallax of the Earth (up to 0.26°) is modelled; the test would fail without it.
 - No refraction is applied on either side (the Moon has no atmosphere).
 
