@@ -10,10 +10,12 @@ export function Intro({ onDone }: { onDone: () => void }) {
   useEffect(() => { if (t >= 26) { try { sessionStorage.setItem('ln-intro', '1'); } catch { /* ignore */ } onDone(); } }, [t, onDone]);
   const lines = [[2, 'Finding the Sun and Earth', ephem], [8, 'Loading mountains and craters', hz], [14, 'Loading places to explore', true], [19, 'Positions checked against NASA reference data', true]] as const;
   return (
-    <div className="absolute inset-0 z-[60] bg-ink grid place-items-center cursor-pointer" onClick={onDone} role="status" aria-live="polite">
-      <div className="text-center">
+    <div className="intro-screen absolute inset-0 z-[60] grid place-items-center cursor-pointer" onClick={onDone} role="status" aria-live="polite">
+      <div className="intro-glow" aria-hidden />
+      <div className="text-center relative">
         <div className="label mb-2">NASA Space Apps 2026 · CLPS</div>
         <div className="text-5xl font-semibold tracking-tight">LUNAR <span className="text-solar">NAVIGATOR</span></div>
+        <div className="label normal-case mt-3 text-sm">Sunlight, terrain and Earth contact for every landing site</div>
         <div className="mt-6 space-y-1 text-left inline-block">
           {lines.map(([at, text, ok]) => <div key={text} className={`num text-xs transition-opacity duration-300 ${t >= at ? 'opacity-100' : 'opacity-0'}`}><span className={ok ? 'text-emerald-300' : 'text-solar'}>{ok ? '●' : '○'}</span> <span className="text-white/75">{text}</span></div>)}
         </div>

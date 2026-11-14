@@ -110,8 +110,12 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   --ui-red: #a53722;
   --ui-wash: #e7eff0;
   --ui-hover: #dce9ed;
-  --ui-shadow: 0 12px 32px #194e6b18;
-  --scene-background: #dcebf0;
+  --ui-shadow: 0 1px 1px #0b1b2a14, 0 10px 24px -8px #0b1b2a33, 0 32px 60px -28px #0b1b2a4d;
+  --ui-edge: #ffffff;
+  --scene-background: #070e18;
+  --scene-sky: radial-gradient(125% 85% at 50% 4%, #16263c 0%, #0b1526 42%, #050911 100%);
+  --scene-text: #e4edf5;
+  --scene-dim: #a9bccd;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -128,8 +132,12 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   --ui-red: #ffb4a1;
   --ui-wash: #193748;
   --ui-hover: #25485c;
-  --ui-shadow: 0 12px 32px #0005;
-  --scene-background: #071827;
+  --ui-shadow: 0 1px 1px #0008, 0 12px 28px -10px #000a, 0 36px 64px -30px #000c;
+  --ui-edge: #ffffff1f;
+  --scene-background: #050b14;
+  --scene-sky: radial-gradient(125% 85% at 50% 4%, #112033 0%, #091322 42%, #04070d 100%);
+  --scene-text: #e4edf5;
+  --scene-dim: #a9bccd;
 }
 html, body, #root { color: var(--ui-text); }
 .glass { background: var(--ui-surface); border-color: var(--ui-border); box-shadow: var(--ui-shadow); backdrop-filter: blur(18px); }
@@ -198,3 +206,107 @@ html, body, #root { color: var(--ui-text); }
 .app-timeline [aria-hidden] .label { color: var(--ui-muted) !important; }
 /* Honor audience-mode hiding even on elements that also use flex/grid utilities. */
 [hidden] { display: none !important; }
+
+/* ===========================================================================
+   Visual system (final layer): the canvas is deep space in both themes, the
+   interface stays on solid cards above it. Rules here intentionally come last
+   so they settle the earlier, incremental patches above.
+   =========================================================================== */
+
+/* --- Backdrop ------------------------------------------------------------ */
+html, body, #root { background: var(--scene-background); }
+.hud-grid {
+  background-color: var(--scene-background);
+  background-image:
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px),
+    var(--scene-sky);
+  background-size: 64px 64px, 64px 64px, cover;
+}
+.grain { opacity: .035; }
+
+/* --- Cards --------------------------------------------------------------- */
+.glass {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  box-shadow: var(--ui-shadow), inset 0 1px 0 var(--ui-edge);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.glass .glass { box-shadow: none; }
+.btn { border-radius: 10px; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+.btn-on { font-weight: 600; }
+
+/* --- Type ---------------------------------------------------------------- */
+/* Tailwind utilities live in a cascade layer, so unlayered `.label` beat
+   `normal-case`; full sentences were being shouted in small caps. */
+.label.normal-case, .label.lowercase, .label.capitalize { text-transform: none; letter-spacing: normal; }
+.compare-panel dl .label, .compare-panel label .label { text-transform: none; letter-spacing: normal; }
+.glass p, .glass li { max-width: 62ch; }
+
+/* --- Text that sits directly on the scene -------------------------------- */
+.scene-note {
+  color: var(--scene-dim);
+  text-shadow: 0 1px 3px #000c;
+  background: #0a1320a8;
+  border: 1px solid #ffffff14;
+  border-radius: 999px;
+  padding: 5px 12px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+
+/* --- Lander view: one stack, so the caption can never land on the buttons - */
+.lander-controls {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: 176px; z-index: 20;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: max-content; max-width: min(48rem, calc(100vw - 32px));
+}
+.hud-grid:has(aside) .lander-controls, .hud-grid:has([role="dialog"]) .lander-controls { visibility: hidden; }
+.lander-controls > .lander-toolbar,
+.lander-controls > .lander-source {
+  position: static; transform: none; inset: auto; max-width: 100%;
+}
+.lander-controls > .lander-source { text-align: center; }
+@media (max-width: 1279px) { .lander-controls { bottom: 242px; } }
+@media (max-width: 639px) { .lander-controls { bottom: calc(86px + env(safe-area-inset-bottom)); gap: 6px; } }
+
+/* --- Compare: clear the two header rows ---------------------------------- */
+@media (min-width: 640px) { .compare-panel { top: 176px; } }
+.compare-panel { border-radius: 16px; background: color-mix(in srgb, var(--scene-background) 76%, transparent); border-color: #ffffff1a; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.compare-panel > p { color: var(--scene-dim); max-width: 86ch; }
+.compare-panel .glass { border-radius: 12px; }
+
+/* --- South-pole map ------------------------------------------------------ */
+.polar-map { background: transparent; }
+.polar-disc { border-color: #ffffff2e; box-shadow: 0 0 0 1px #00000066, 0 24px 70px -20px #000, 0 0 90px -30px #9bdbf5; }
+@media (min-width: 1280px) {
+  .hud-grid:has(aside[aria-label="Site details"]) .polar-map { padding-right: 27rem; }
+  .hud-grid:has(aside[aria-label="Choose a site"]) .polar-map { padding-left: 23rem; }
+}
+
+/* --- Timeline ------------------------------------------------------------ */
+.app-timeline rect { rx: 2; }
+
+/* --- Boot screen: lives on the same night sky, so nothing is white-on-cream - */
+.intro-screen { background: var(--scene-sky); color: var(--scene-text); }
+.intro-screen .label { color: var(--scene-dim); }
+.intro-screen [class*="text-white/"] { color: var(--scene-dim); }
+.intro-screen .text-solar { color: #f5c56d; }
+.intro-screen .bg-solar { background-color: #f5c56d; }
+.intro-screen .bg-white\/10 { background-color: #ffffff24; }
+.intro-screen .btn { background: #ffffff14; border-color: #ffffff38; color: var(--scene-text); }
+.intro-screen .btn:hover { background: #ffffff26; }
+.intro-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(42% 42% at 50% 46%, #9bdbf51f 0%, transparent 70%); }
+
+/* --- Compare cards ------------------------------------------------------- */
+.best-badge { border: 1px solid color-mix(in srgb, var(--ui-turquoise) 45%, transparent); background: color-mix(in srgb, var(--ui-turquoise) 12%, transparent); border-radius: 999px; padding: 3px 9px; align-self: center; }
+/* Scene captions belong to the scene: a panel on top of it owns the screen. */
+.hud-grid:has([role="dialog"]) .scene-note, .hud-grid:has(.compare-panel) .scene-note { display: none; }
+
+/* --- Modal scrim: always a night veil, never a wash of cream over the Moon - */
+.scrim { background: #04070dc2; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+
+/* --- Segmented view switch: same accent as the other toggles -------------- */
+.seg { min-height: 38px; }
+.seg-on { background: var(--ui-hover); color: var(--color-earth); font-weight: 600; box-shadow: inset 0 -2px 0 var(--color-earth); }

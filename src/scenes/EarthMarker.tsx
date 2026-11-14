@@ -11,7 +11,7 @@ export function EarthMarker({ pos, sunPos }: { pos: THREE.Vector3; sunPos: THREE
   return (
     <group>
       <group quaternion={q}>
-        <lineSegments geometry={line} scale={[len - 0.14, 1, 1]}><lineDashedMaterial color="#5fc3ff" transparent opacity={0.35} dashSize={0.06} gapSize={0.04} onUpdate={(m) => void m} /></lineSegments>
+        <lineSegments geometry={line} scale={[len - 0.14, 1, 1]} onUpdate={(self) => self.computeLineDistances()}><lineDashedMaterial color="#5fc3ff" transparent opacity={0.45} dashSize={0.04} gapSize={0.03} /></lineSegments>
       </group>
       <group position={pos}>
         <mesh rotation={[0, Math.PI, 0]}><sphereGeometry args={[0.11, 48, 24]} /><meshStandardMaterial map={tex} roughness={0.9} metalness={0} /></mesh>

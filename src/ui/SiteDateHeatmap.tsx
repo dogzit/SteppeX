@@ -44,7 +44,7 @@ function YearMap({ onClose }: { onClose: () => void }) {
     return () => { cancelled = true; };
   }, [dates, days, options, ready]);
   const pick = (id: string, date: number) => { useStore.getState().selectSite(id); useStore.getState().setTime(date); onClose(); };
-  return <div className="fixed inset-0 z-50 p-3 sm:p-6 grid place-items-center bg-ink/70">
+  return <div className="fixed inset-0 z-50 p-3 sm:p-6 grid place-items-center scrim">
     <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="year-map-title" className="glass rounded-2xl p-4 w-full max-w-6xl max-h-full overflow-y-auto space-y-3">
       <div className="flex justify-between gap-3"><h2 id="year-map-title" className="text-xl font-semibold">A year of landing dates</h2><button className="btn" onClick={onClose}>Close year map</button></div>
       <p className="text-sm text-haze">One sample per month, at your selected UTC time, for each library site. Every cell uses the same {days}-day mission, sunset rule and {options.earthMarginDeg}° radio clearance. These samples do not find the best minute or every short opportunity.</p>

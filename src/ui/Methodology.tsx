@@ -4,7 +4,7 @@ import { useDialogFocus } from './useDialogFocus';
 export function Methodology({ onClose }: { onClose: () => void }) {
   const ref = useDialogFocus();
   useEffect(() => { const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key); }, [onClose]);
-  return <div className="absolute inset-0 z-50 bg-ink/70 grid place-items-center p-4" onClick={onClose}>
+  return <div className="absolute inset-0 z-50 scrim grid place-items-center p-4" onClick={onClose}>
     <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="help-title" className="glass rounded-2xl max-w-3xl w-full max-h-full overflow-y-auto p-5 text-base leading-relaxed" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-start justify-between gap-3"><h2 id="help-title" className="text-xl font-semibold">Help with Lunar Navigator</h2><button className="btn" onClick={onClose}>Close help</button></div>
       <ol className="list-decimal pl-5 space-y-2 mt-4">

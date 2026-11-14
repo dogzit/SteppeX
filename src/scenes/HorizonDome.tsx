@@ -1,5 +1,4 @@
 import { terrainSummary } from '@/ui/terrainCopy';
-import { useTheme } from '@/ui/theme';
 import { Suspense, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
@@ -23,8 +22,10 @@ function Terrain({ hz }: { hz: HorizonProfile }) {
       const az = (i % n) * hz.stepDeg, e = hz.el[i % n];
       const top = dirOf(az, e, R_SKY), bot = dirOf(az, -20, R_SKY);
       pos.push(top.x, top.y, top.z, bot.x, bot.y, bot.z);
-      const shade = 0.11 + 0.09 * THREE.MathUtils.clamp((e + 3) / 12, 0, 1);
-      col.push(shade, shade * 1.02, shade * 1.1, 0.012, 0.013, 0.018);
+      // Lit regolith against a black sky: the crest stays bright enough to read as a silhouette
+      // edge, the ground falls away to near-black at the viewer's feet.
+      const shade = 0.09 + 0.09 * THREE.MathUtils.clamp((e + 3) / 12, 0, 1);
+      col.push(shade, shade * 0.99, shade * 1.03, 0.016, 0.017, 0.021);
       if (i < n) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
     }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); return g;
@@ -90,7 +91,6 @@ function Look({ yaw, pitch, fov }: { yaw: React.MutableRefObject<number>; pitch:
 }
 
 export default function HorizonDome() {
-  const theme = useTheme((s) => s.theme);
   const site = useActiveSite(); const hz = useHorizon(site); const timeMs = useStore((s) => s.timeMs);
   const { live } = useMetrics();
   const yaw = useRef(live.sun.az), pitch = useRef(8), fov = useRef(70);
@@ -122,9 +122,9 @@ export default function HorizonDome() {
       onPointerMove={(e) => { if (!drag.current) return; const k = fov.current / 900; yaw.current += (drag.current.x - e.clientX) * -k * -1; pitch.current = Math.max(-25, Math.min(85, pitch.current + (e.clientY - drag.current.y) * k)); drag.current = { x: e.clientX, y: e.clientY }; }}
       onPointerUp={() => { drag.current = null; }} onPointerLeave={() => { drag.current = null; }}
       onWheel={(e) => { fov.current = Math.max(25, Math.min(100, fov.current + e.deltaY * 0.05)); }}>
-      <Canvas camera={{ fov: 70, near: 0.1, far: 400, position: [0, 0, 0] }} dpr={[1, 2]} gl={{ antialias: true }} style={{ position: 'absolute', inset: 0 }}>
-        <color attach="background" args={[theme === 'light' ? '#dcebf0' : '#071827']} />
-        {theme === 'dark' && <Stars />}
+      <Canvas camera={{ fov: 70, near: 0.1, far: 400, position: [0, 0, 0] }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} style={{ position: 'absolute', inset: 0 }}>
+        {/* No atmosphere: the lunar sky is black with stars at any hour, in either theme. */}
+        <Stars />
         <ambientLight intensity={0.05} />
         <Terrain hz={hz} />
         <Grid />
@@ -136,16 +136,18 @@ export default function HorizonDome() {
         <Look yaw={yaw} pitch={pitch} fov={fov} />
       </Canvas>
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
-        {items.map((it) => <div key={it.id} className="absolute top-0 left-0" style={{ opacity: 0 }} ref={(el) => { if (el) labelRegistry.set(it.id, { pos: it.pos, el, occlude: false }); else labelRegistry.delete(it.id); }}><div className="pin-label" style={{ color: it.color, transform: 'translate(-50%, -50%)', background: it.color ? 'rgba(5,7,11,.75)' : 'transparent', border: it.color ? undefined : 'none', fontSize: it.color ? 11 : 10, letterSpacing: '.1em' }}>{it.text}</div></div>)}
+        {items.map((it) => <div key={it.id} className="absolute top-0 left-0" style={{ opacity: 0 }} ref={(el) => { if (el) labelRegistry.set(it.id, { pos: it.pos, el, occlude: false }); else labelRegistry.delete(it.id); }}><div className="pin-label" style={{ transform: 'translate(-50%, -50%)', background: it.color ? 'rgba(5,7,11,.78)' : 'transparent', border: it.color ? undefined : 'none', color: it.color ?? '#cddbe8', textShadow: it.color ? undefined : '0 1px 3px #000', fontSize: it.color ? 11 : 10, letterSpacing: '.1em' }}>{it.text}</div></div>)}
       </div>
-      <div className="lander-toolbar absolute left-1/2 -translate-x-1/2 top-24 z-20 glass rounded-xl px-3 py-2 flex items-center gap-2 pointer-events-auto" role="group" aria-label="Look direction">
+      <div className="lander-controls">
+      <div className="lander-toolbar glass rounded-xl px-3 py-2 flex items-center gap-2 pointer-events-auto" role="group" aria-label="Look direction">
         <span className="label sr-only">Lander view · {fmtDateTime(timeMs)}</span>
         <button className="btn" onClick={() => lookAt(live.sun.az, live.sun.el)}>Look at Sun</button>
         <button className="btn" onClick={() => lookAt(live.earth.az, live.earth.el)}>Look at Earth</button>
         <button className="btn" onClick={() => lookAt(0, 8)}>North</button>
         <span className="label normal-case tracking-normal text-white/50 hidden lg:block">drag to look · wheel to zoom · dots = next lunar day's Sun/Earth paths</span>
       </div>
-      <div className="lander-source absolute left-1/2 -translate-x-1/2 bottom-40 z-20 label normal-case tracking-normal text-white/60 pointer-events-none">{terrainSummary(hz)}</div>
+      <div className="lander-source scene-note label normal-case tracking-normal text-xs pointer-events-none">{terrainSummary(hz)}</div>
+      </div>
     </div>
   );
 }

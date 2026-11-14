@@ -70,9 +70,12 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
         <section aria-label="Site score" className="space-y-2">
           <div className="label">{windowLabel}</div>
           <div className="flex items-start gap-4">
-            <div>
+            <div className="shrink-0">
               <div className="label">Site score</div>
-              <div className={`num text-5xl leading-none ${tone}`}>{score.total.toFixed(0)}<span className="text-base text-white/40">/100</span></div>
+              <div className={`flex items-center gap-2.5 ${tone}`}>
+                <ScoreDial value={score.total} />
+                <div className="num text-5xl leading-none">{score.total.toFixed(0)}<span className="text-base text-white/40">/100</span></div>
+              </div>
             </div>
             <div className="flex-1 space-y-1.5 min-w-0">
               {/* Conditions at the selected time, separate from the window score above: the next terrain-aware
@@ -154,6 +157,17 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
     </aside>
   );
 }
+/** Score as a ring: the same number the digits show, readable from across a room. */
+function ScoreDial({ value }: { value: number }) {
+  const r = 22, circ = 2 * Math.PI * r, v = Math.max(0, Math.min(100, value));
+  return (
+    <svg width="44" height="44" viewBox="0 0 52 52" aria-hidden className="shrink-0">
+      <circle cx="26" cy="26" r={r} fill="none" stroke="var(--ui-border)" strokeWidth="6" opacity="0.5" />
+      <circle cx="26" cy="26" r={r} fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round"
+        strokeDasharray={`${(v / 100) * circ} ${circ}`} transform="rotate(-90 26 26)" />
+    </svg>
+  );
+}
 function Metric({ label, value, sub, tone, live }: { label: string; value: string; sub: string; tone: string; live?: boolean }) {
-  return <div><div className="label">{label}</div><div className={`num text-[22px] leading-none mt-0.5 ${tone}`} aria-live={live ? 'off' : undefined}>{value}</div><div className="num text-[10px] text-white/45 mt-1 truncate" title={sub}>{sub}</div></div>;
+  return <div><div className="label">{label}</div><div className={`num text-[22px] leading-none mt-0.5 ${tone}`} aria-live={live ? 'off' : undefined}>{value}</div><div className="num text-[10px] text-white/45 mt-1 leading-snug" title={sub}>{sub}</div></div>;
 }

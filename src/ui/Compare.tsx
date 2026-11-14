@@ -46,10 +46,10 @@ function Card({ sc, baseMs, slipDays, windowDays, best, onMetrics }: { sc: Scena
         <button className="btn px-2" aria-label="Remove this comparison" onClick={() => remove(sc.key)}>✕</button>
       </div>
       <label className="flex items-center gap-2 text-[11px]"><span className="label">Days from selected date</span><input aria-label="Days before or after the selected date" type="number" step={1} className="num w-16 bg-white/5 border border-white/10 rounded px-1.5 py-0.5" value={sc.offsetDays} onChange={(e) => update(sc.key, { offsetDays: +e.target.value || 0 })} /><span className="label">d</span><span className="num text-white/55 ml-auto">{fmtDateTime(t)}</span></label>
-      <div className="flex items-end gap-3">
-        <div><div className="label">Site score</div><div className={`num text-4xl leading-none ${tone}`}>{m.score.total.toFixed(0)}</div></div>
+      <div className="flex items-end gap-3 flex-wrap">
+        <div className="shrink-0"><div className="label">Site score</div><div className={`num text-4xl leading-none ${tone}`}>{m.score.total.toFixed(0)}</div></div>
         <div className="pb-1"><Delta v={m.score.total - base.score.total} /></div>
-        {best && <span className="label text-emerald-300 ml-auto">Highest score (ties included)</span>}
+        {best && <span className="best-badge label normal-case text-emerald-300 ml-auto">Highest score (ties included)</span>}
       </div>
       <dl className="grid grid-cols-[1fr_auto_auto] gap-x-2 gap-y-1 text-[11px] num">
         <Row l="Sunlight" v={fmtPct(w.sunlitFrac)} d={<Delta v={100 * (w.sunlitFrac - bw.sunlitFrac)} unit="pt" />} />
@@ -61,7 +61,7 @@ function Card({ sc, baseMs, slipDays, windowDays, best, onMetrics }: { sc: Scena
         <Row l="Earth height at landing" v={`${m.now.earthEl.toFixed(1)}°`} d={<Delta v={m.now.earthEl - base.now.earthEl} unit="°" digits={1} />} />
       </dl>
       <MiniBands m={m} t={t} windowDays={windowDays} />
-      <div className="label normal-case tracking-normal text-white/40 truncate" title={terrainSummary(hz)}>{terrainSummary(hz)}</div>
+      <div className="label normal-case tracking-normal text-white/40 leading-snug" title={terrainSummary(hz)}>{terrainSummary(hz)}</div>
     </article>
   );
 }

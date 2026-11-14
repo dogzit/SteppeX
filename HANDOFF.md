@@ -11,6 +11,18 @@ Mission statistics use refined terrain crossings and exact start/end clipping. H
 
 The south-pole view uses a genuine polar-stereographic LOLA hillshade. Build display assets with node --import tsx scripts/build-polar-hillshade.ts using existing cached PDS sources. Hillshade illumination is explicitly cartographic, separate from Sun visibility.
 
+## Visual pass (2026-11-14, later)
+The 3D scene is now deep space in both themes. Both canvases are transparent (`gl.alpha`), the page
+paints `--scene-sky` behind them, the star shader is additive so the gradient shows through it, and the
+lander dome keeps a black sky with stars at any hour. Captions that sit directly on the scene use
+`.scene-note`; modals use `.scrim`, not a cream veil. Camera fly-tos fit the whole disc to the narrower
+viewport axis, so the Moon is never cropped by the window edge. The boot screen moved onto the same sky
+(its status lines were previously white on cream, i.e. invisible). Unlayered `.label` was beating
+Tailwind's `normal-case`, so full sentences were being shouted; `.label.normal-case` now resets it.
+Fixed collisions: the lander caption and look-direction buttons share one `.lander-controls` stack, the
+compare panel clears both header rows, and the south-pole caption makes room for an open side panel.
+Site score gained a ring; metric sub-lines wrap instead of truncating mid-word.
+
 ## Checks
 - npm test: 53 tests across 13 files pass, including JPL fixtures, exact mission spans, battery, ties, projection, contrast and date sampling.
 - npm run build: passes.

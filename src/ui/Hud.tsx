@@ -22,7 +22,7 @@ export function Hud({ onPalette, onMethodology, onTour, compact = false, siteDra
   const compareOpen = useCompare((s) => s.open), setCompareOpen = useCompare((s) => s.setOpen);
   const d = new Date(timeMs);
   const utcLocal = d.toISOString().slice(0, 16);
-  const seg = (on: boolean) => `px-2.5 py-1.5 text-xs transition-colors ${on ? 'bg-solar/20 text-solar' : 'bg-white/5 text-white/75 hover:bg-white/10'}`;
+  const seg = (on: boolean) => `seg px-2.5 py-1.5 text-xs transition-colors ${on ? 'seg-on' : 'bg-white/5 text-white/75 hover:bg-white/10'}`;
   return (
     <header data-tools-open={toolsOpen} className="app-hud absolute top-0 inset-x-0 z-40 flex flex-wrap items-stretch justify-between p-4 gap-3 pointer-events-none">
       <div className="glass rounded-xl px-4 py-2.5 pointer-events-auto shrink-0 flex flex-col justify-center">

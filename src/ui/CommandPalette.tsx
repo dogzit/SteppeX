@@ -36,7 +36,7 @@ export function CommandPalette({ commands, onClose }: { commands: Command[]; onC
   useEffect(() => setI(0), [q]);
   const run = async (c: Command) => { try { await c.run(); if (c.id === 'share') setFeedback('Link copied. You can share this site and date.'); else onClose(); } catch { setFeedback('The link could not be copied. Copy the address from your browser’s address bar instead.'); } };
   return (
-    <div className="absolute inset-0 z-50 bg-ink/60 flex items-start justify-center pt-[12vh]" onClick={onClose} role="dialog" aria-modal="true" aria-label="Search sites and actions" ref={dialog} tabIndex={-1}>
+    <div className="absolute inset-0 z-50 scrim flex items-start justify-center pt-[12vh]" onClick={onClose} role="dialog" aria-modal="true" aria-label="Search sites and actions" ref={dialog} tabIndex={-1}>
       <div className="glass rounded-xl w-[34rem] max-w-[92vw] overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center px-4 pt-3"><h2 className="font-semibold">Find a site or action</h2><button className="btn" onClick={onClose}>Close search</button></div>
         <input ref={input} role="combobox" aria-expanded={true} aria-controls="search-results" aria-autocomplete="list" aria-activedescendant={list[i] ? `command-${list[i].id}` : undefined} aria-label="Search sites and actions" className="w-full bg-transparent px-4 py-3 text-base outline-none border-b border-white/10" placeholder="Jump to a site, a date, a view…" value={q} onChange={(e) => setQ(e.target.value)}

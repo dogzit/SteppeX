@@ -1,4 +1,3 @@
-import { useTheme } from '@/ui/theme';
 import PolarMap from './PolarMap';
 import { Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
@@ -18,12 +17,11 @@ function Labels() {
   return null;
 }
 function Scene() {
-  const theme = useTheme((s) => s.theme);
   const timeMs = useStore((s) => s.timeMs);
   const eph = useEphemeris(timeMs);
   return (
     <>
-      {theme === 'dark' && <Stars />}
+      <Stars />
       <directionalLight position={eph.sunPos} intensity={3.2} color="#fff4e0" />
       <ambientLight intensity={0.02} />
       <Suspense fallback={null}>
@@ -38,18 +36,18 @@ function Scene() {
 }
 
 export default function Globe() {
-  const theme = useTheme((s) => s.theme);
   const timeMs = useStore((s) => s.timeMs);
   const eph = useEphemeris(timeMs);
   const view = useStore((s) => s.view);
   if (view === 'polar') return <PolarMap />;
   return (
     <div className="absolute inset-0">
-    <Canvas className="absolute inset-0" camera={{ position: [2.2, 0.6, 2.4], fov: 38, near: 0.05, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, powerPreference: 'high-performance' }} style={{ position: 'absolute', inset: 0 }}>
-      <color attach="background" args={[theme === 'light' ? '#dcebf0' : '#071827']} />
+    {/* The canvas is transparent: space itself is the page gradient behind it, so the Moon sits in
+        one continuous sky instead of a flat fill that stops at the canvas edge. */}
+    <Canvas className="absolute inset-0" camera={{ position: [2.79, 0.76, 3.05], fov: 38, near: 0.05, far: 200 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }} style={{ position: 'absolute', inset: 0 }}>
       <Scene />
     </Canvas>
-    <div className="absolute left-1/2 -translate-x-1/2 bottom-36 text-xs text-haze pointer-events-none">Polar relief: NASA LRO LOLA / PDS · fixed map lighting</div>
+    <div className="scene-note absolute left-1/2 -translate-x-1/2 bottom-44 text-xs pointer-events-none">Polar relief: NASA LRO LOLA / PDS · fixed map lighting</div>
     <LabelLayer siteSun={eph.siteSun} earthPos={eph.earthPos} />
     </div>
   );
