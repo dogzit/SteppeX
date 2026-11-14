@@ -38,7 +38,7 @@ void main() {
   float es = max(dot(N, uEarthDir), 0.0) * uEarthPhase;
   vec3 night = albedo * (0.028 + 0.05 * es) * vec3(0.55, 0.68, 0.9) * max(dot(n, N), 0.0);
 
-  vec3 col = mix((sun + night) * uExposure, polarShade * (0.24 + 0.76 * macro), polar);
+  vec3 col = mix((sun + night) * uExposure, polarShade * (0.06 + 0.32 * macro), polar);
   // Polar hillshade is cartographic relief under fixed display lighting, not a solar simulation.
   // Thin selenographic grid every 15°, amber-tinted at the equator and prime meridian.
   if (uGrid > 0.5) {

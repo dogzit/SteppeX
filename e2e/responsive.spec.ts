@@ -18,7 +18,7 @@ test.describe('880px: drawers, globe usability, View menu', () => {
     const t0 = await missionTime();
 
     // Open the Sites drawer, place a pin via the custom lat/lon form.
-    await page.getByRole('button', { name: 'Sites' }).click();
+    await page.getByRole('button', { name: 'Sites', exact: true }).click();
     const siteDrawer = page.locator('aside[aria-label="Choose a site"]');
     await expect(siteDrawer).toBeVisible();
     await siteDrawer.getByLabel('Custom latitude').fill('-80');
@@ -62,7 +62,7 @@ test.describe('880px: drawers, globe usability, View menu', () => {
     await expect(page.getByRole('button', { name: 'View: Globe' })).toBeVisible();
 
     // Mutual exclusivity: opening Details while Sites is open closes Sites.
-    await page.getByRole('button', { name: 'Sites' }).click();
+    await page.getByRole('button', { name: 'Sites', exact: true }).click();
     await expect(page.locator('aside[aria-label="Choose a site"]')).toBeVisible();
     await page.getByRole('button', { name: 'Details' }).click();
     await expect(page.locator('aside[aria-label="Choose a site"]')).toHaveCount(0);
@@ -184,7 +184,7 @@ test.describe('1440 and 390 sanity', () => {
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(url());
     await page.screenshot({ path: 'docs/screens/r-390-initial.png' });
-    await page.getByRole('button', { name: 'Sites' }).click();
+    await page.getByRole('button', { name: 'Sites', exact: true }).click();
     await expect(page.locator('aside[aria-label="Choose a site"]')).toBeVisible();
     for (const target of ['header', 'footer', 'aside[aria-label="Choose a site"]']) {
       const box = await page.locator(target).boundingBox();

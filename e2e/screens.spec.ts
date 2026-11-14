@@ -43,7 +43,7 @@ test('globe, dashboard, timeline', async ({ page }) => {
   await page.waitForTimeout(800);
   await page.screenshot({ path: 'docs/screens/08-explorer.png' });
   await page.keyboard.press('Meta+k');
-  await page.getByLabel('Search sites and actions').fill('blue ghost');
+  await page.getByRole('combobox', { name: 'Search sites and actions' }).fill('blue ghost');
   await page.waitForTimeout(400);
   await page.screenshot({ path: 'docs/screens/09-palette.png' });
   await page.keyboard.press('Enter');

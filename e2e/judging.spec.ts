@@ -63,3 +63,34 @@ test('empty searches and invalid coordinates explain a next step', async ({ page
   await page.getByRole('button', { name: 'Add pin', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('Enter a latitude from');
 });
+
+for (const width of [390, 1440]) test(`light/dark theme ${width}: consistent controls and saved preference`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto(start);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  const dismiss = page.getByRole('button', { name: 'Dismiss getting started' });
+  if (await dismiss.isVisible()) await dismiss.click();
+  await page.screenshot({ path: `test-results/light-${width}.png` });
+  if (width < 640) await page.getByRole('button', { name: 'Open menu' }).click();
+  await page.getByText('More tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Dark theme', exact: true }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.screenshot({ path: `test-results/dark-${width}.png` });
+});
+
+test('south pole uses a projected map with spaced fixed-size pins and visible shadow text', async ({ page }) => {
+  await page.goto(start + '&view=polar');
+  await expect(page.getByRole('region', { name: 'South pole terrain map' })).toBeVisible();
+  await expect(page.getByAltText(/NASA LOLA south pole elevation hillshade/)).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'NASA LRO LOLA / PDS' })).toContainText('In shadow');
+  await expect(page.locator('canvas')).toHaveCount(0);
+  const dots = page.locator('.polar-pin');
+  const boxes = await dots.evaluateAll((nodes) => nodes.map((n) => { const r = n.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }));
+  for (let i = 0; i < boxes.length; i++) {
+    expect(boxes[i].width).toBe(24);
+    for (let j = i + 1; j < boxes.length; j++) expect(Math.hypot(boxes[i].x - boxes[j].x, boxes[i].y - boxes[j].y)).toBeGreaterThan(14);
+  }
+  await page.screenshot({ path: 'test-results/polar-map.png' });
+});

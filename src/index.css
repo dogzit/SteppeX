@@ -4,7 +4,7 @@
   --color-solar: #ffb547;
   --color-earth: #5fc3ff;
   --color-haze: #9fb2c8;
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Nunito", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 :root { color-scheme: dark; }
@@ -83,7 +83,7 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   .app-hud > :nth-child(3) { grid-column: 1 / -1; }
   .hud-grid aside { top: 164px; }
 }
-.welcome-hint { top: 164px; left: 50%; transform: translateX(-50%); width: min(28rem, calc(100vw - 32px)); }
+.welcome-hint { top: 164px; left: 16px; width: min(22rem, calc(100vw - 32px)); }
 .hud-grid:has([role="dialog"]) .welcome-hint { display: none; }
 @media (max-width: 639px) {
   .welcome-hint { top: 82px; font-size: 12px; }
@@ -92,4 +92,94 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   .phone-toolbar { gap: 4px; }
   .app-hud[data-tools-open="true"] { max-height: 70dvh; overflow-y: auto; }
   .app-hud[data-tools-open="true"] .phone-toolbar { position: sticky; top: 0; z-index: 1; }
+}
+
+/* Sky, felt, saffron and turquoise: a Mongolian-inspired, contrast-first palette. */
+:root, :root[data-theme="light"] {
+  color-scheme: light;
+  --color-ink: #f8f4ea;
+  --color-solar: #8b4c00;
+  --color-earth: #145e8a;
+  --color-haze: #405b68;
+  --ui-text: #163746;
+  --ui-muted: #405b68;
+  --ui-surface: #fffdf7;
+  --ui-border: #b7c8cf;
+  --ui-blue: #145e8a;
+  --ui-turquoise: #086e66;
+  --ui-red: #a53722;
+  --ui-wash: #e7eff0;
+  --ui-hover: #dce9ed;
+  --ui-shadow: 0 12px 32px #194e6b18;
+  --scene-background: #dcebf0;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ink: #071827;
+  --color-solar: #f5c56d;
+  --color-earth: #9bdbf5;
+  --color-haze: #bfced9;
+  --ui-text: #edf4f8;
+  --ui-muted: #bfced9;
+  --ui-surface: #102737;
+  --ui-border: #4b6575;
+  --ui-blue: #9bdbf5;
+  --ui-turquoise: #8fe0ce;
+  --ui-red: #ffb4a1;
+  --ui-wash: #193748;
+  --ui-hover: #25485c;
+  --ui-shadow: 0 12px 32px #0005;
+  --scene-background: #071827;
+}
+html, body, #root { color: var(--ui-text); }
+.glass { background: var(--ui-surface); border-color: var(--ui-border); box-shadow: var(--ui-shadow); backdrop-filter: blur(18px); }
+.btn { min-height: 40px; font-size: 14px; line-height: 1.35; background: var(--ui-wash); border: 1px solid var(--ui-border); border-radius: 10px; color: var(--ui-text); }
+.btn:hover { background: var(--ui-hover); }
+.btn-on { color: var(--color-earth); background: var(--ui-hover); border-color: var(--color-earth); }
+.label { color: var(--ui-muted); font-size: 12px; font-weight: 600; letter-spacing: .045em; }
+.glass [class*="text-white/"], .glass [class*="text-white/"]:hover { color: var(--ui-muted); }
+.glass .text-white { color: var(--ui-text); }
+.glass .text-haze { color: var(--ui-muted); }
+.glass .text-emerald-300 { color: var(--ui-turquoise); }
+.glass .text-rose-300 { color: var(--ui-red); }
+.glass .text-sky-300 { color: var(--ui-blue); }
+.glass [class*="border-white/"] { border-color: var(--ui-border); }
+.glass [class*="bg-white/"] { background-color: var(--ui-wash); }
+.glass input, .glass select { min-width: 0; min-height: 40px; color: var(--ui-text); background: var(--ui-surface); border-color: var(--ui-border); font-size: 14px; }
+.glass input[type="range"] { accent-color: var(--ui-blue); }
+.glass p { line-height: 1.55; }
+.glass [class~="text-[10px]"], .glass [class~="text-[11px]"], .glass [class~="text-xs"] { font-size: 13px; }
+.glass summary { min-height: 36px; padding-block: 6px; }
+.glass .num { letter-spacing: -.02em; }
+.app-hud > :first-child, .phone-toolbar { border-top: 3px solid var(--ui-blue); position: relative; }
+/* A small interlaced diamond motif, restricted to decoration away from text. */
+.app-hud > :first-child::after, .phone-toolbar::after {
+  content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; pointer-events: none; opacity: .45;
+  background: repeating-linear-gradient(135deg, transparent 0 9px, #c79432 9px 11px, transparent 11px 18px, #168a87 18px 20px);
+}
+.app-hud h1 { letter-spacing: .02em; }
+.compare-panel { background: var(--ui-surface); border-color: var(--ui-border); }
+.compare-panel > p { color: var(--ui-muted); font-size: 14px; }
+.app-timeline svg text { fill: var(--ui-muted); }
+.app-timeline .label { text-transform: none; letter-spacing: 0; }
+.grain { opacity: .018; }
+@media (max-width: 639px) {
+  .phone-toolbar .btn { font-size: 12px; padding: 6px; }
+  .phone-toolbar h1 { font-size: 11px; }
+  .phone-timebar > span { font-size: 10px; }
+  .compact-drawer > :first-child { padding: 10px 12px; }
+  .compact-drawer h2 { font-size: 16px; }
+}
+.polar-map { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 172px 16px 166px; background: var(--scene-background); }
+.polar-disc { position: relative; flex-shrink: 0; min-height: 0; width: min(calc(100dvh - 520px), 90vw, 540px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: #a6b2b9; border: 2px solid var(--ui-border); box-shadow: var(--ui-shadow); cursor: crosshair; }
+.polar-disc > img { position: absolute; max-width: none; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.polar-pin { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: 24px; height: 24px; border: 0; background: transparent; cursor: pointer; }
+.polar-pin > span { display: block; width: 7px; height: 7px; border: 1px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #142d3d; }
+.polar-pin-selected > span { width: 10px; height: 10px; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #142d3d; }
+.polar-origin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, 18px); background: #fffdf7d9; color: #163746; border-radius: 4px; font-size: 12px; padding: 2px 4px; pointer-events: none; }
+.polar-map-caption { max-width: min(44rem, 94vw); text-align: center; }
+@media (max-width: 639px) {
+ .polar-map { padding: 80px 12px 80px; gap: 8px; }
+ .polar-disc { width: min(48vh, 92vw); }
+ .polar-map-caption { font-size: 12px; }
 }

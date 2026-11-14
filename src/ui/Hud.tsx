@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '@/state/store';
 import { useCompare } from '@/state/compare';
+import { ThemeSwitch } from './ThemeSwitch';
 import { AudienceSwitch } from './AudienceSwitch';
 import { ViewsMenu } from './ViewsMenu';
 
@@ -56,7 +57,7 @@ export function Hud({ onPalette, onMethodology, onTour, compact = false, siteDra
         <span className="w-px h-5 bg-white/10" />
         <AudienceSwitch />
         <details className="relative"><summary className="btn cursor-pointer">More tools</summary><div className="glass absolute right-0 top-full mt-2 p-3 rounded-xl min-w-44 flex flex-col gap-2 z-50">        <button className={`btn ${showGrid ? 'btn-on' : ''}`} onClick={toggleGrid} aria-pressed={showGrid} title="Show latitude and longitude lines (G)">Map lines</button>
-        <button className="btn" onClick={onTour} title="Guided tour (T)">Quick tour</button></div></details>
+        <button className="btn" onClick={onTour} title="Guided tour (T)">Quick tour</button><ThemeSwitch /></div></details>
         <button className="btn" onClick={onMethodology} title="How to use this app and understand the results (?)" aria-label="Help">Help</button>
         <button className="btn num" onClick={onPalette} title="Command palette (Ctrl/⌘ K)" aria-label="Search sites and actions">Search</button>
       </div>

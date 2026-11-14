@@ -20,8 +20,8 @@ export function useCommands(openMethodology: () => void): Command[] {
       { id: 'mode', title: s.mode === 'planner' ? 'Switch to Simple mode' : 'Switch to Expert mode', hint: 'M', run: () => s.setMode(s.mode === 'planner' ? 'explorer' : 'planner') },
       { id: 'meth', title: 'Help and glossary', hint: '?', run: openMethodology },
       { id: 'share', title: 'Copy shareable link', run: async () => { if (!navigator.clipboard) throw new Error('clipboard unavailable'); await navigator.clipboard.writeText(window.location.href); } },
-      ...dates.map(([t, iso]) => ({ id: `d-${t}`, title: `Jump to: ${t}`, hint: iso.slice(0, 16).replace('T', ' ') + 'Z', run: () => s.setTime(Date.parse(iso)) })),
       ...SITES.map((x) => ({ id: `s-${x.id}`, title: `Go to: ${x.name}`, hint: `${fmtLat(x.lat)} ${fmtLon(x.lon)}`, run: () => { s.selectSite(x.id); } })),
+      ...dates.map(([t, iso]) => ({ id: `d-${t}`, title: `Jump to: ${t}`, hint: iso.slice(0, 16).replace('T', ' ') + 'Z', run: () => s.setTime(Date.parse(iso)) })),
     ];
     return cmds;
   }, [s, c, openMethodology]);

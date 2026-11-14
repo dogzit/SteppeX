@@ -32,3 +32,8 @@ Two presentation modes share the exact same scenario: Simple (default, everyday 
 Initial copy audit: DTE, selenographic, libration/sub-Earth, disc centre/last limb, Earth mask, T-minus, launch slip/deltas and raw terrain-worker diagnostics. Navigation bottlenecks: buried date search, symbol-only actions, hidden empty/error states, overloaded settings and a technical-first help panel. These are replaced or explained.
 
 `npm test`: 48 pass. Build passes. Date-finder and judging browser suites: 10 pass, including both screen sizes, Simple/Expert state preservation, glossary focus return, and actionable errors.
+
+## Phase 5
+Light mode is default, with warm off-white surfaces, deep sky blue, saffron, turquoise and red-orange accents. Dark preference persists. Nunito/Noto Sans fonts and system fallbacks support Cyrillic. A restrained interlaced stripe decorates headers. UI token contrast is tested against WCAG AA 4.5:1 for normal text in both themes. The 3D backdrop follows the selected theme without changing illumination calculations. The South pole view is now a dedicated polar-stereographic hillshade with correct coordinate inversion and collision-filtered fixed-size buttons; it has no cylindrical seam or pole texture streaks.
+
+`npm test`: 50 pass. Build: pass. Full Playwright suite: 26 pass, including 390px/375px/880px/1440px, both themes, theme persistence, real map assets, shadow labels, keyboard navigation, shared links, exports, comparison and onboarding. Browser evidence is generated under test-results.

@@ -10,7 +10,7 @@ interface Props { sunDir: THREE.Vector3; earthDir: THREE.Vector3; earthPhase: nu
 
 export function Moon({ sunDir, earthDir, earthPhase }: Props) {
   const [color, normal, south, north] = useTexture([`${import.meta.env.BASE_URL}textures/moon_color_4k.jpg`, `${import.meta.env.BASE_URL}textures/moon_normal_2k.jpg`, `${import.meta.env.BASE_URL}textures/polar-south.png`, `${import.meta.env.BASE_URL}textures/polar-north.png`]);
-  color.colorSpace = THREE.SRGBColorSpace; color.anisotropy = 8; normal.colorSpace = THREE.NoColorSpace; normal.anisotropy = 4;
+  south.colorSpace = THREE.SRGBColorSpace; north.colorSpace = THREE.SRGBColorSpace; color.colorSpace = THREE.SRGBColorSpace; color.anisotropy = 8; normal.colorSpace = THREE.NoColorSpace; normal.anisotropy = 4;
   const showGrid = useStore((s) => s.showGrid);
   const setCustom = useStore((s) => s.setCustom);
   const mat = useMemo(() => new THREE.ShaderMaterial({

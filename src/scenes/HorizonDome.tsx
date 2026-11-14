@@ -1,3 +1,4 @@
+import { useTheme } from '@/ui/theme';
 import { Suspense, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
@@ -88,6 +89,7 @@ function Look({ yaw, pitch, fov }: { yaw: React.MutableRefObject<number>; pitch:
 }
 
 export default function HorizonDome() {
+  const theme = useTheme((s) => s.theme);
   const site = useActiveSite(); const hz = useHorizon(site); const timeMs = useStore((s) => s.timeMs);
   const { live } = useMetrics();
   const yaw = useRef(live.sun.az), pitch = useRef(8), fov = useRef(70);
@@ -120,8 +122,8 @@ export default function HorizonDome() {
       onPointerUp={() => { drag.current = null; }} onPointerLeave={() => { drag.current = null; }}
       onWheel={(e) => { fov.current = Math.max(25, Math.min(100, fov.current + e.deltaY * 0.05)); }}>
       <Canvas camera={{ fov: 70, near: 0.1, far: 400, position: [0, 0, 0] }} dpr={[1, 2]} gl={{ antialias: true }} style={{ position: 'absolute', inset: 0 }}>
-        <color attach="background" args={['#05070b']} />
-        <Stars />
+        <color attach="background" args={[theme === 'light' ? '#dcebf0' : '#071827']} />
+        {theme === 'dark' && <Stars />}
         <ambientLight intensity={0.05} />
         <Terrain hz={hz} />
         <Grid />
