@@ -1,6 +1,8 @@
 # Lunar Navigator
 
-**NASA Space Apps Challenge 2026 · CLPS**
+**NASA Space Apps Challenge 2026 · CLPS** · **Live: <https://steppex.vercel.app>**
+
+Lunar Navigator turns a landing site and a date into a straight answer: how much sunlight that spot really gets once the surrounding mountains are taken into account, and when Earth is above the horizon for a direct radio link. Every number comes from NASA LOLA elevation maps and positions checked against JPL Horizons to 0.009°, so a mission planner, a judge or a curious visitor can all see where the answer comes from.
 
 The project is named **Lunar Navigator** throughout the app and documentation; `lunar-navigator` is its npm package identifier.
 

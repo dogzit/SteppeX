@@ -67,4 +67,6 @@ Deferred optional items:
 
 The numeric reference examples deliberately use the reviewer's original 0° radio clearance; new sessions default to 5°, which changes radio visibility and score, not solar timing.
 
-Screenshots: docs/screens/review-simple-390.png, review-simple-1440.png and review-expert-1440.png. Historical smoke screenshots are left at their earlier committed versions to avoid unrelated binary churn. All six phase commits are local; this work has not been pushed or deployed to steppex.vercel.app.
+Screenshots: docs/screens/review-simple-390.png, review-simple-1440.png and review-expert-1440.png. Historical smoke screenshots are left at their earlier committed versions to avoid unrelated binary churn.
+
+Status: all six phase commits, plus the later visual pass, are pushed to `main` and deployed. The reviewed build is live at <https://steppex.vercel.app>. Deployment runs through the repository's Vercel Git integration, so a push to `main` publishes; the live bundle hash was checked against the local `dist/` build.
