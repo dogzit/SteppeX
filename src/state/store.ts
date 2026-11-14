@@ -10,6 +10,7 @@ export type Span = 'day' | 'month' | 'year';
 export type Mode = 'planner' | 'explorer';
 export interface ActiveSite { id: string; name: string; lat: number; lon: number; heightKm: number; record?: SiteRecord }
 export const SPAN_MS: Record<Span, number> = { day: 86400_000, month: SYNODIC_MONTH_DAYS * 86400_000, year: 365.25 * 86400_000 };
+export const SYNODIC_MONTH_DAYS_MS = SYNODIC_MONTH_DAYS * 86400_000;
 export const SPEEDS = [60, 600, 3600, 6 * 3600, 86400, 7 * 86400] as const; // simulated seconds per real second
 
 interface State {
@@ -25,7 +26,7 @@ interface State {
   mode: Mode; setMode: (m: Mode) => void;
   showGrid: boolean; toggleGrid: () => void;
   hoverSiteId: string | null; setHover: (id: string | null) => void;
-  flyToken: number; zoomNear: boolean; ephemReady: boolean; horizonsReady: boolean;
+  flyToken: number; zoomNear: boolean; ephemReady: boolean; horizonsReady: boolean; introDone: boolean; cinematic: boolean;
 }
 
 const url = readUrlState();
@@ -43,7 +44,7 @@ export const useStore = create<State>((set) => ({
   mode: url.mode ?? 'planner', setMode: (mode) => set({ mode }),
   showGrid: false, toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
   hoverSiteId: null, setHover: (hoverSiteId) => set({ hoverSiteId }),
-  flyToken: 0, zoomNear: false, ephemReady: false, horizonsReady: false,
+  flyToken: 0, zoomNear: false, ephemReady: false, horizonsReady: false, introDone: false, cinematic: false,
 }));
 
 // URL sync (throttled)

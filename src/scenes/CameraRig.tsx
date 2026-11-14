@@ -4,7 +4,8 @@ import { OrbitControls } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { OrbitControls as OC } from 'three-stdlib';
 import { useStore, resolveSite } from '@/state/store';
-import { latLonToThree } from './convert';
+import { latLonToThree, bodyToThree } from './convert';
+import { moonState, unit } from '@/astro';
 
 const prefersStill = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -13,11 +14,15 @@ export function CameraRig() {
   const near = useRef(false);
   const controls = useRef<OC>(null);
   const { camera } = useThree();
-  const target = useRef<{ pos: THREE.Vector3; up: THREE.Vector3; t: number } | null>(null);
-  const flyToken = useStore((s) => s.flyToken);
+  const target = useRef<{ pos: THREE.Vector3; up: THREE.Vector3; t: number; rate: number } | null>(null);
+  const flyToken = useStore((s) => s.flyToken), introDone = useStore((s) => s.introDone);
 
   useEffect(() => {
-    const { siteId, custom, view } = useStore.getState();
+    const { siteId, custom, view, cinematic, timeMs } = useStore.getState();
+    if (!introDone) { // parked far out on the Earth side until the boot sequence ends
+      const dir = bodyToThree(unit(moonState(new Date(timeMs)).earth)).normalize();
+      camera.position.copy(dir.multiplyScalar(9)); camera.up.set(0, 1, 0); controls.current?.update(); return;
+    }
     const site = resolveSite(siteId, custom);
     const dist = view === 'polar' ? 3.6 : Math.min(Math.max(camera.position.length(), 2.2), 3.4);
     let dir: THREE.Vector3, up: THREE.Vector3;
@@ -29,14 +34,15 @@ export function CameraRig() {
       if (Math.abs(site.lat) > 80) dir.add(latLonToThree(site.lat > 0 ? 62 : -62, site.lon, 1).multiplyScalar(0.8)).normalize();
       up = new THREE.Vector3(0, 1, 0);
     }
-    target.current = { pos: dir.multiplyScalar(dist), up, t: 0 };
+    target.current = { pos: dir.multiplyScalar(dist), up, t: 0, rate: cinematic ? 1.0 : 3.2 };
+    if (cinematic) useStore.setState({ cinematic: false });
     if (prefersStill) { camera.position.copy(target.current.pos); camera.up.copy(up); controls.current?.update(); target.current = null; }
-  }, [flyToken, camera]);
+  }, [flyToken, introDone, camera]);
 
   useFrame((_, dt) => {
     const tg = target.current;
     if (tg) {
-      const k = 1 - Math.exp(-dt * 3.2);
+      const k = 1 - Math.exp(-dt * tg.rate);
       const cur = camera.position.clone(); const curLen = cur.length(), tgLen = tg.pos.length();
       const dir = cur.normalize().lerp(tg.pos.clone().normalize(), k).normalize();
       camera.position.copy(dir.multiplyScalar(THREE.MathUtils.lerp(curLen, tgLen, k)));

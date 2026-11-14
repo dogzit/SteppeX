@@ -3,12 +3,14 @@ import { useMetrics } from '@/state/useMetrics';
 import { useStore, useActiveSite } from '@/state/store';
 import { fmtLat, fmtLon } from '@/data/sites';
 import { fmtCountdown, fmtDateTime, fmtDuration, fmtPct } from './format';
-import { SCORE_WEIGHTS } from '@/astro';
+import { SCORE_WEIGHTS, subPoints } from '@/astro';
+import { useMemo } from 'react';
 import { SkyTable } from './SkyTable';
+import { ExplorerCallouts } from './Explorer';
 
 const CONF: Record<string, [string, string]> = { high: ['Verified', 'text-emerald-300 border-emerald-400/30'], medium: ['Published · limited precision', 'text-sky-300 border-sky-400/30'], approx: ['Approximate region', 'text-rose-300 border-rose-400/30'] };
 
-export function Dashboard() {
+export function Dashboard({ explorer = false }: { explorer?: boolean }) {
   const site = useActiveSite();
   const { timeMs, setTime, windowDays, setWindowDays, sunsetDef, setSunsetDef, earthMarginDeg, setEarthMargin } = useStore();
   const { stats, live, horizon } = useMetrics();
@@ -17,6 +19,7 @@ export function Dashboard() {
   const score = stats.score;
   const tone = score.total >= 70 ? 'text-emerald-300' : score.total >= 40 ? 'text-solar' : 'text-rose-300';
   const dte = stats.window.earthWindows.filter((w) => w.end > timeMs).slice(0, 4);
+  const lib = useMemo(() => subPoints(new Date(timeMs)).subEarth, [timeMs]);
   return (
     <aside className="absolute right-4 top-28 bottom-36 z-20 w-[25rem] glass rounded-xl flex flex-col overflow-hidden" aria-label="Power and communications dashboard">
       <div className="p-4 border-b border-white/10">
@@ -24,12 +27,13 @@ export function Dashboard() {
           <div className="min-w-0">
             <div className="label">Selected site</div>
             <h2 className="text-lg font-semibold leading-tight truncate" title={site.name}>{site.name}</h2>
-            <div className="num text-xs text-haze mt-0.5">{fmtLat(site.lat)} · {fmtLon(site.lon)}{site.heightKm ? ` · h ${site.heightKm.toFixed(2)} km` : ''}</div>
+            <div className="num text-xs text-haze mt-0.5">{fmtLat(site.lat)} · {fmtLon(site.lon)}{site.heightKm ? ` · h ${site.heightKm.toFixed(2)} km` : ''} · <span title="Sub-Earth point (libration)">libration {lib.lat.toFixed(1)}° {lib.lon.toFixed(1)}°</span></div>
           </div>
           <span className={`label border rounded-full px-2 py-0.5 shrink-0 ${conf[1]}`}>{conf[0]}</span>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {explorer && <ExplorerCallouts />}
         <section aria-label="Mission viability score" className="flex items-center gap-4">
           <div>
             <div className="label">Viability · next {windowDays} d</div>
@@ -63,11 +67,11 @@ export function Dashboard() {
           )}
         </section>
         <SkyTable />
-        <section className="grid grid-cols-3 gap-2 items-end" aria-label="Analysis options">
+        {!explorer && <section className="grid grid-cols-3 gap-2 items-end" aria-label="Analysis options">
           <label className="flex flex-col"><span className="label">Window · days</span><input type="number" min={1} max={400} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={windowDays} onChange={(e) => { const v = +e.target.value; if (v >= 1 && v <= 400) setWindowDays(v); }} /></label>
           <label className="flex flex-col"><span className="label">Sunset = </span><select className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={sunsetDef} onChange={(e) => setSunsetDef(e.target.value as 'center' | 'limb')}><option value="center">disc centre</option><option value="limb">last limb</option></select></label>
           <label className="flex flex-col"><span className="label">Earth mask °</span><input type="number" min={0} max={30} step={0.5} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={earthMarginDeg} onChange={(e) => setEarthMargin(+e.target.value)} /></label>
-        </section>
+        </section>}
         <p className="label normal-case tracking-normal text-white/45 leading-snug">Horizon: {horizon.label}. {site.record?.note ?? ''} Source: {site.record?.source ?? 'user input'}.</p>
       </div>
     </aside>

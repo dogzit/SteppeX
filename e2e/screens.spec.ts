@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 test.describe.configure({ mode: 'serial' });
 const T = '2026-11-20T12:00Z';
 test('globe, dashboard, timeline', async ({ page }) => {
-  await page.goto(`/?site=artemis-cr&t=${T}`);
+  await page.goto(`/?site=artemis-cr&t=${T}&nointro`);
   await expect(page.getByText('NAVIGATOR')).toBeVisible();
   await page.waitForTimeout(4500);
   await page.screenshot({ path: 'docs/screens/01-globe.png' });
@@ -35,4 +35,26 @@ test('globe, dashboard, timeline', async ({ page }) => {
   await page.waitForTimeout(1200);
   await page.screenshot({ path: 'docs/screens/07-compare.png' });
   await expect(page.getByText('best')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Explorer' }).click();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: 'docs/screens/08-explorer.png' });
+  await page.keyboard.press('Meta+k');
+  await page.getByLabel('Type a command or site').fill('blue ghost');
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: 'docs/screens/09-palette.png' });
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(2500);
+  await expect(page.getByText(/Blue Ghost M1/).first()).toBeVisible();
+  await page.getByRole('button', { name: 'Method' }).click();
+  await expect(page.getByText('How Lunar Navigator computes')).toBeVisible();
+  await page.screenshot({ path: 'docs/screens/10-methodology.png' });
+});
+test('intro plays and hands off', async ({ page }) => {
+  await page.goto(`/?site=artemis-cr&t=${T}`);
+  await expect(page.getByText('click to skip')).toBeVisible();
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: 'docs/screens/00-intro.png' });
+  await page.waitForTimeout(3000);
+  await expect(page.getByText('click to skip')).toHaveCount(0);
 });

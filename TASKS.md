@@ -11,7 +11,7 @@
 ✅ LOLA DEMs (85S 40 m, 75S/75N 240 m, global 16 ppd), pure-Node PDS reader, projection verified vs global DEM (42 m) · ✅ great-circle horizon sweep (250 km, eye 2 m) for 31 sites · ✅ worker + 3 downsampled tiles for custom pins · ✅ sky dome: terrain silhouette, Sun/Earth at true size, planets, tracks, compass grid · ✅ terrain wired into all metrics/timeline · ✅ Gläser et al. comparison in VALIDATION.md (south pole within 1–9 pts; Whipple gap explained) · ✅ "Sky from the site" table (rise/set/dir/visibility, timeanddate-style) · ✅ screenshots · ✅ commit
 ## 5 Compare ✅
 ✅ 2–4 scenario cards (site × date offset) · ✅ launch-slip slider (−14…+28 d) with signed ▲/▼ deltas vs each card's no-slip baseline, best-card highlight · ✅ same-date nearby-sites mode (3 nearest terrain-backed sites) · ✅ CSV/JSON export · ✅ commit
-## 6 Polish + audiences
-⬜ Planner/Explorer · ⬜ intro + fly-through · ⬜ Cmd+K, shortcuts · ⬜ event log · ⬜ Methodology panel · ⬜ a11y + reduced-motion + WebGL fallback · ⬜ README, demo script, pitch outline, limitations · ⬜ commit
+## 6 Polish + audiences ✅
+✅ Planner/Explorer (callouts driven by live data, 5-step guided tour) · ✅ boot intro + Earth-side cinematic fly-in · ✅ ⌘K palette (sites, dates, views, actions), shortcuts (Space ←→ 1/2/3 G C M T ?) · ✅ event toasts (sunrise/sunset/Earthrise/Earthset, aria-live) · ✅ Methodology panel · ✅ ARIA labels, keyboard focus, reduced-motion, colour+glyph signals, WebGL fallback · ✅ README, DEMO.md (shot list + 5 slides), LIMITATIONS.md, VALIDATION.md · ✅ commit
 ## 7 Stretch
-⬜ heatmap · ⬜ PSR / eternal-light · ⬜ real stars · ⬜ narrated tour · ⬜ kiosk · ⬜ mobile
+⬜ heatmap · ⬜ PSR / eternal-light · ✅ real planets in the sky (instead of real stars) · ⬜ narrated tour · ⬜ kiosk · ⬜ mobile
