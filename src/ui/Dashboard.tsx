@@ -27,7 +27,8 @@ export function Dashboard({ explorer = false }: { explorer?: boolean }) {
           <div className="min-w-0">
             <div className="label">Selected site</div>
             <h2 className="text-lg font-semibold leading-tight truncate" title={site.name}>{site.name}</h2>
-            <div className="num text-xs text-haze mt-0.5">{fmtLat(site.lat)} · {fmtLon(site.lon)}{site.heightKm ? ` · h ${site.heightKm.toFixed(2)} km` : ''} · <span title="Sub-Earth point (libration)">libration {lib.lat.toFixed(1)}° {lib.lon.toFixed(1)}°</span></div>
+            <div className="num text-xs text-haze mt-0.5">{fmtLat(site.lat)} · {fmtLon(site.lon)}{site.heightKm ? ` · h ${site.heightKm.toFixed(2)} km` : ''}</div>
+            <div className="num text-[10px] text-white/45" title="Sub-Earth point: selenographic latitude/longitude of the point where Earth is overhead">libration · sub-Earth {lib.lat.toFixed(2)}° {lib.lon.toFixed(2)}°</div>
           </div>
           <span className={`label border rounded-full px-2 py-0.5 shrink-0 ${conf[1]}`}>{conf[0]}</span>
         </div>
