@@ -5,6 +5,7 @@ import { useHorizon } from '@/state/useHorizon';
 import { useOptions } from '@/state/useMetrics';
 import { writeUrlState } from '@/state/url';
 import { fmtDateTime, fmtDuration } from './format';
+import { announce } from './notice';
 import { terrainSummary } from './terrainCopy';
 import { downloadMissionIcs } from './ics';
 
@@ -15,7 +16,6 @@ const DAY = 86400_000;
 /** "Find a sunny time": next 3 opportunities in the site's dashboard with ≥N h sunlight and ≥M h continuous Earth visibility. */
 export function FindWindowPanel() {
   const [open, setOpen] = useState(() => useStore.getState().fwSelStart !== null);
-  const [feedback, setFeedback] = useState('');
   const site = useActiveSite();
   const hz = useHorizon(site);
   const opts = useOptions();
@@ -56,7 +56,7 @@ export function FindWindowPanel() {
     setView('horizon');
     // The store's own URL sync debounces ~400 ms; flush synchronously so the clipboard gets this exact state.
     writeUrlState(useStore.getState());
-    try { await navigator.clipboard.writeText(window.location.href); setFeedback('Link copied. It opens this site at the chosen time.'); } catch { setFeedback('The link could not be copied. You can copy it from your browser’s address bar instead.'); }
+    try { await navigator.clipboard.writeText(window.location.href); announce('Link copied. It opens this site at the chosen time.'); } catch { announce('The link could not be copied. You can copy it from your browser’s address bar instead.'); }
   }, [setFwSelection, setTime, setView]);
 
   return (
@@ -65,7 +65,6 @@ export function FindWindowPanel() {
         <span className="label">Find a sunny time</span>
         <span className="text-white/50 text-xs">{open ? '▴ hide' : '▾ show'}</span>
       </button>
-      <p role="status" className="text-xs text-haze mt-1">{feedback}</p>
       {open && (
         <div className="mt-2 space-y-3">
           <p className="text-xs text-haze">Choose how long you need sunlight and a clear view of Earth. Open a result to move to its start time and see the view from the surface.</p>

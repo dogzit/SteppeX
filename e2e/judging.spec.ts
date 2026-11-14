@@ -94,3 +94,50 @@ test('south pole uses a projected map with spaced fixed-size pins and visible sh
   }
   await page.screenshot({ path: 'test-results/polar-map.png' });
 });
+
+test('Expert year map computes library sites and opens a chosen site/date', async ({ page }) => {
+  await page.goto(start + '&mode=planner');
+  await page.getByRole('button', { name: 'Details', exact: true }).click();
+  await page.getByRole('button', { name: 'Open year score map' }).click();
+  const dialog = page.getByRole('dialog', { name: 'A year of landing dates' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('status')).toHaveText('All 31 sites ready.', { timeout: 60000 });
+  const row = dialog.getByRole('row').filter({ hasText: 'Apollo 11' });
+  await expect(row.getByRole('button')).toHaveCount(13);
+  await row.getByRole('button').nth(1).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByLabel('Set date and time (UTC)')).toHaveValue('2026-12-14T09:04');
+  await expect(page.getByRole('heading', { name: /Apollo 11/ })).toBeVisible();
+});
+
+test('copy failure gives a usable alternative even when the result changes the view', async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('denied')) }, configurable: true }));
+  await page.goto('/?site=artemis-cr&t=2026-11-20T12:00Z&nointro');
+  await page.getByRole('button', { name: 'Details', exact: true }).click();
+  await page.getByRole('button', { name: 'Find a sunny time' }).click();
+  await page.getByRole('button', { name: 'Copy this time' }).first().click();
+  await expect(page.getByRole('status').filter({ hasText: 'The link could not be copied' })).toContainText('browser’s address bar');
+});
+
+for (const width of [390, 1440]) test(`final audience screenshots ${width}`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  await page.addInitScript(() => localStorage.setItem('ln-welcome-dismissed', '1'));
+  await page.goto(start);
+  await page.getByRole('button', { name: 'Details', exact: true }).click();
+  await expect(page.getByLabel('Site summary')).toContainText('Earth is visible');
+  await page.screenshot({ path: `test-results/review-simple-${width}.png` });
+  await page.getByRole('button', { name: width < 640 ? 'Switch to Expert mode' : 'Expert', exact: true }).click();
+  await expect(page.getByLabel('Battery lasts in hours')).toBeVisible();
+  await page.screenshot({ path: `test-results/review-expert-${width}.png` });
+});
+
+test('coordinate inputs follow a positive-latitude custom pin and a later library choice', async ({ page }) => {
+  await page.goto('/?lat=11.873&lon=45.655&t=2026-11-14T09:04Z&nointro');
+  await page.getByRole('button', { name: 'Sites', exact: true }).click();
+  await expect(page.getByLabel('Custom latitude')).toHaveValue('11.873');
+  await expect(page.getByLabel('Custom longitude')).toHaveValue('45.655');
+  await page.getByRole('button', { name: /Apollo 11/ }).click();
+  await page.getByRole('button', { name: 'Sites', exact: true }).click();
+  await expect(page.getByLabel('Custom latitude')).toHaveValue('0.674');
+  await expect(page.getByLabel('Custom longitude')).toHaveValue('23.473');
+});

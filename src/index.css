@@ -183,3 +183,18 @@ html, body, #root { color: var(--ui-text); }
  .polar-disc { width: min(48vh, 92vw); }
  .polar-map-caption { font-size: 12px; }
 }
+
+.heat-low { background: #f7ded3; color: #7e2715; }
+.heat-medium { background: #f5e4b5; color: #634400; }
+.heat-high { background: #ccece3; color: #14564c; }
+[data-theme="dark"] .heat-low { background: #492b29; color: #ffd4c6; }
+[data-theme="dark"] .heat-medium { background: #493e21; color: #ffe0a0; }
+[data-theme="dark"] .heat-high { background: #173e3a; color: #b3f3dd; }
+
+.app-notices { max-width: min(36rem, calc(100vw - 24px)); }
+@media (max-width: 639px) { .app-notices { bottom: 82px; width: calc(100vw - 24px); } }
+
+.compact-drawer > :first-child > :first-child { flex-wrap: nowrap; }
+.app-timeline [aria-hidden] .label { color: var(--ui-muted) !important; }
+/* Honor audience-mode hiding even on elements that also use flex/grid utilities. */
+[hidden] { display: none !important; }

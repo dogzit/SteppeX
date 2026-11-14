@@ -6,11 +6,11 @@ The project is named **Lunar Navigator** throughout the app and documentation; `
 
 Pick a landing site and a date. In under ten seconds, see whether it has sunlight and a line of sight to Earth, what the lander would actually see on the horizon, and what a launch slip costs.
 
-![Globe](docs/screens/01-globe.png)
+![Lunar Navigator in Simple mode](docs/screens/review-simple-1440.png)
 
-| Lander's-eye view with real LOLA terrain | Compare scenarios with a launch-slip slider |
+| Simple · everyday exploration | Expert · advanced planning |
 |---|---|
-| ![Lander view](docs/screens/06-sky-table.png) | ![Compare](docs/screens/07-compare.png) |
+| ![Simple phone view](docs/screens/review-simple-390.png) | ![Expert desktop view](docs/screens/review-expert-1440.png) |
 
 ## Run it
 
@@ -27,6 +27,7 @@ npx playwright test  # uses the production build above; screenshots in docs/scre
 Data pipeline (already run; outputs are committed in `public/data` and `public/textures`):
 
 ```bash
+node --import tsx scripts/build-polar-hillshade.ts  # polar maps from cached LOLA DEMs
 npx tsx scripts/fetch-horizons.ts   # JPL Horizons fixtures (needs network)
 npm run data:ephem                  # hourly body-fixed Sun/Earth table 2023–2031
 npm run data:textures               # Moon colour + LOLA relief normal map (needs .cache/ sources)
@@ -40,11 +41,12 @@ npm run validate && npm run validate:horizon   # regenerates VALIDATION.md
 
 - **3D Moon globe** with LROC colour, LOLA-derived relief shading, a soft terminator, earthshine, a 15° selenographic grid, glowing pins with day/night rings, smooth fly-to, south-pole view, click-to-drop pins.
 - **31-site library** with sources and confidence flags: Apollo, CLPS (IM-1, IM-2, Blue Ghost M1, Griffin-1 target), Artemis III candidate points, Chandrayaan-3, Chang'e-3/4/5/6, SLIM, Luna-25 (planned), robotic pioneers, and Gläser et al. polar illumination optima.
-- **Dashboard**: Sun/Earth elevation, visible solar-disc fraction, live T-minus to sunset and Earthset, sunlight % and longest continuous sunlight over a window, Earth windows, a transparent 0–100 viability score, and a timeanddate-style **"Sky from the site"** table (rise, set, direction, visibility comment) for the Sun, Earth and planets.
+- **Dashboard**: refined sunrise/sunset and Earth-visibility spans clipped to the exact mission start and end; default radio clearance of 5° above terrain (0° remains available). Includes a full-night estimate beyond the mission end and a user-entered battery-hours check. Also shows Sun/Earth elevation, visible solar-disc fraction, live T-minus to sunset and Earthset, sunlight % and longest continuous sunlight over a window, Earth windows, a transparent 0–100 viability score, and a timeanddate-style **"Sky from the site"** table (rise, set, direction, visibility comment) for the Sun, Earth and planets.
+- **Polar terrain map**: real polar-stereographic LOLA hillshade, zoomable with fixed-size, collision-filtered pins. Fixed display lighting is labeled separately from predicted sunlight.
 - **Timeline**: Sun-up, Earth-up and both-up bands over a day, a lunar month or a year; hover, click-to-jump, drag-to-scrub, playback at six speeds, ±1 day / ±1 lunar day.
 - **Lander view**: 360° sky dome with the LOLA terrain silhouette, the Sun at 0.53° and the Earth at 1.9° with phase, planets, compass and elevation grid, and the next lunar day's Sun and Earth tracks (the Earth's libration loop is visible).
 - **Compare**: 2–4 scenarios (site × date), a launch-slip slider with signed green/red deltas, "same date, nearby sites", CSV/JSON export.
-- **Planner / Explorer** modes, guided tour, boot intro with an Earth-side fly-in, command palette (Ctrl/⌘ K), keyboard shortcuts, event toasts, Methodology panel, shareable URL state, reduced-motion support, WebGL fallback.
+- **Simple / Expert** experiences share the same site and date. Simple shows the essentials; Expert adds full measurements, visibility settings, battery checks, daily landing-date comparison and a monthly site-by-date score map over a year. Includes a light Mongolian-inspired theme, saved dark mode, touch/keyboard glossary, dismissible panels, guided tour, boot intro with an Earth-side fly-in, command palette (Ctrl/⌘ K), keyboard shortcuts, event toasts, Methodology panel, shareable URL state, reduced-motion support, WebGL fallback.
 
 ## How it works
 

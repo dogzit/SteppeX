@@ -1,3 +1,4 @@
+import { terrainSummary } from '@/ui/terrainCopy';
 import { useTheme } from '@/ui/theme';
 import { Suspense, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -144,7 +145,7 @@ export default function HorizonDome() {
         <button className="btn" onClick={() => lookAt(0, 8)}>North</button>
         <span className="label normal-case tracking-normal text-white/50 hidden lg:block">drag to look · wheel to zoom · dots = next lunar day's Sun/Earth paths</span>
       </div>
-      <div className="lander-source absolute left-1/2 -translate-x-1/2 bottom-40 z-20 label normal-case tracking-normal text-white/60 pointer-events-none">Horizon: {hz.label}{hz.source === 'lola' ? '' : ' — terrain data not available for this point'}</div>
+      <div className="lander-source absolute left-1/2 -translate-x-1/2 bottom-40 z-20 label normal-case tracking-normal text-white/60 pointer-events-none">{terrainSummary(hz)}</div>
     </div>
   );
 }

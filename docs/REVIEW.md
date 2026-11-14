@@ -37,3 +37,34 @@ Initial copy audit: DTE, selenographic, libration/sub-Earth, disc centre/last li
 Light mode is default, with warm off-white surfaces, deep sky blue, saffron, turquoise and red-orange accents. Dark preference persists. Nunito/Noto Sans fonts and system fallbacks support Cyrillic. A restrained interlaced stripe decorates headers. UI token contrast is tested against WCAG AA 4.5:1 for normal text in both themes. The 3D backdrop follows the selected theme without changing illumination calculations. The South pole view is now a dedicated polar-stereographic hillshade with correct coordinate inversion and collision-filtered fixed-size buttons; it has no cylindrical seam or pole texture streaks.
 
 `npm test`: 50 pass. Build: pass. Full Playwright suite: 26 pass, including 390px/375px/880px/1440px, both themes, theme persistence, real map assets, shadow labels, keyboard navigation, shared links, exports, comparison and onboarding. Browser evidence is generated under test-results.
+
+## Phase 6
+Added the optional Expert site × date score map: all 31 library sites, thirteen monthly start-date samples spanning a year, shared mission length/sunset/radio settings, numbered cells as well as colors, progress, keyboard navigation and a site/date selection action. Calculation yields between cells and can be canceled by closing. Date comparisons pause playback to keep a stable scenario. Battery time comparison was already completed in Phase 2.
+
+Final refinement keeps technical score warnings out of Simple, writes its summary durations in full words, makes panel close controls consistently top-right, and preserves clipboard error feedback across view changes. An out-of-search-range sunset is never described as a zero-length night. Earth in the sky table can explicitly be above terrain but below the selected radio clearance.
+
+Deferred optional items:
+- Continuous polar viability shading: library-site horizon profiles do not justify a continuous regional score surface. A defensible overlay needs a denser terrain sweep, rather than interpolation presented as fact.
+- DSN station coverage: direct Earth line of sight is not a validated Goldstone/Madrid/Canberra availability model.
+- Editable score weights: fixed published weights remain comparable across sites and dates; their reasons are explained.
+- Exact best-minute/year optimization: date comparisons are explicitly daily or monthly samples, not a global optimum claim.
+
+## Final checklist
+- [x] C1 / Shackleton rim S: longest sun no more than 14 days; exact 14-day window in regression.
+- [x] Connecting Ridge at 2026-11-14 09:04 UTC, original 0° clearance: 11d 13h 37m, agrees with first sunset to the refinement tolerance.
+- [x] Peak Near Shackleton: longest sun 11d 03h 55m; longest dark 2d 14h 26m.
+- [x] Radio-window starts agree with Earthrise under the same clearance rule; no interval extends past mission end.
+- [x] Peak Near Shackleton map says “In shadow”, with about −1.15° Sun clearance above terrain.
+- [x] Dedicated south-pole stereographic map has no cylindrical pole streaks; collision-filtered pins have fixed pixel sizes. Selection is available through Sites for hidden neighbors.
+- [x] Inputs follow library and custom sites, including positive-latitude 11.873°N, 45.655°E.
+- [x] Lander toolbar and site panels do not overlap; panels are dismissible; labels avoid panels and each other.
+- [x] Computed plain-language summary, Simple/Expert switch, touch/keyboard glossary and first-use guidance.
+- [x] Lighter Mongolian-inspired palette, Cyrillic-capable typography, saved dark option, tested UI token contrast.
+- [x] Phone 390px (also 375px/880px) and desktop 1440×900 checked in Chromium.
+- [x] 53 unit tests pass, including unchanged JPL fixture checks; production build passes.
+- [x] Full browser suite: 30 passed. Added positive-coordinate regression: passed separately. Four focused summary/mode/screenshot/coordinate checks passed again after the no-sunset copy guard.
+- [x] Physics source files moonFrame.ts, topocentric.ts, series.ts, ephemTable.ts and bodies.ts are unchanged from the starting commit. Changes in events.ts derive intervals/scores and set the requested default clearance.
+
+The numeric reference examples deliberately use the reviewer's original 0° radio clearance; new sessions default to 5°, which changes radio visibility and score, not solar timing.
+
+Screenshots: docs/screens/review-simple-390.png, review-simple-1440.png and review-expert-1440.png. Historical smoke screenshots are left at their earlier committed versions to avoid unrelated binary churn. All six phase commits are local; this work has not been pushed or deployed to steppex.vercel.app.

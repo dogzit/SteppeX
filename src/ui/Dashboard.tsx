@@ -5,6 +5,8 @@ import { fmtLat, fmtLon } from '@/data/sites';
 import { fmtCountdown, fmtDate, fmtDateTime, fmtDuration, fmtPct } from './format';
 import { SCORE_WEIGHTS, MARGIN_BATTERY_HOURS, NEXT_EVENT_HORIZON_DAYS, subPoints } from '@/astro';
 import { fullNight, batteryCheck, SCORE_REASONS } from './scoreModel';
+import { siteSummary } from './siteSummary';
+import { SiteDateHeatmap } from './SiteDateHeatmap';
 import { LandingDates } from './LandingDates';
 import { useOptions } from '@/state/useMetrics';
 import { terrainSummary } from './terrainCopy';
@@ -55,16 +57,14 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
             <h2 className="text-base font-semibold leading-tight break-words" title={site.name}>{site.name}</h2>
             <div className="num text-xs text-haze mt-0.5">{fmtLat(site.lat)} · {fmtLon(site.lon)}{site.heightKm ? ` · height ${site.heightKm.toFixed(2)} km` : ''}</div>
             <div hidden={explorer} className="num text-[10px] text-white/45" title="Location on the Moon where Earth is directly overhead">Earth is overhead at {lib.lat.toFixed(2)}° {lib.lon.toFixed(2)}°</div>
+            {!explorer && <span className={`label inline-flex border rounded-full px-2 py-0.5 mt-1 ${conf[1]}`}>{conf[0]}</span>}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span hidden={explorer} className={`label border rounded-full px-2 py-0.5 ${conf[1]}`}>{conf[0]}</span>
-            {onClose && <button className="btn" onClick={onClose} aria-label="Close site details">✕</button>}
-          </div>
+          {onClose && <button className="btn shrink-0" onClick={onClose} aria-label="Close site details">✕</button>}
         </div>
       </div>
 
       <div ref={scroll} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
-      <p className="text-sm leading-relaxed" aria-label="Site summary">{live.sunUp ? `Sunlight for ${stats.next.sunset ? fmtDuration(stats.next.sunset - timeMs) : 'at least 400 days'}, then a night of ${night.atLeast ? 'at least ' : ''}${fmtDuration(night.durationMs)}.` : `Dark now; ${stats.next.sunrise ? `sunrise in ${fmtDuration(stats.next.sunrise - timeMs)}` : 'no sunrise found in the next 400 days'}.`} Earth is visible {fmtPct(stats.window.earthFrac)} of this date range, earning {(score.comms * SCORE_WEIGHTS.comms).toFixed(1)} of 30 radio points.</p>
+      <p className="text-sm leading-relaxed" aria-label="Site summary">{siteSummary(stats, night)}</p>
 
         {live.sun.el > 0 && live.sunFrac === 0 && <p className="text-sm text-solar">☾ Sun is up, but a mountain is blocking it. This site is in shadow.</p>}
         <section aria-label="Site score" className="space-y-2">
@@ -81,7 +81,7 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
                 <span aria-hidden>{live.sunUp ? '☀' : '☾'}</span>
                 <span>{live.sunUp ? 'Sunlit now' : 'Dark now'} · {live.sunUp ? 'sunset' : 'sunrise'} in {nextSunTransition !== null ? fmtDuration(nextSunTransition - timeMs) : NONE_WITHIN}</span>
               </div>
-              {score.margin === 0 && (
+              {!explorer && score.margin === 0 && (
                 <p className="text-[11px] text-rose-300 leading-snug">
                   No points for time left before sunset because this site is dark now. The longest stretch of darkness in this date range is <b>{fmtDuration(stats.window.longestDarkMs)}</b>. Full points need at least {MARGIN_BATTERY_HOURS} hours of sunlight left.
                 </p>
@@ -96,7 +96,7 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
                   </div>
                 );
               })}
-              <div className="flex items-center gap-2 text-[10px] pt-1 mt-0.5 border-t border-white/10">
+              <div hidden={explorer} className="flex items-center gap-2 text-[10px] pt-1 mt-0.5 border-t border-white/10">
                 <span className="label w-16 shrink-0">Total</span>
                 <span className="flex-1" />
                 <span className="num w-14 text-right shrink-0 font-semibold text-white">{score.total.toFixed(1)}/100</span>
@@ -106,12 +106,14 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
             </div>
           </div>
         </section>
-        <p className="text-sm text-haze">A polar-site comparison score. Near-side sites often keep Earth in view and receive all 30 radio points; this is not a spacecraft survival prediction.</p>
-        <details><summary className="cursor-pointer text-sm">Why these score weights?</summary><ul className="text-sm text-haze space-y-1 mt-2">{SCORE_REASONS.map(([name, points, reason]) => <li key={name}><b>{name}: {points} points.</b> {reason}</li>)}</ul></details>
-        <FindWindowPanel />
+        {explorer && <p className="text-sm text-haze">Higher scores mean more sunlight and Earth view. Use the same dates to compare polar sites.</p>}
+        <p hidden={explorer} className="text-sm text-haze">A polar-site comparison score. Near-side sites often keep Earth in view and receive all 30 radio points; this is not a spacecraft survival prediction.</p>
+        <details hidden={explorer}><summary className="cursor-pointer text-sm">Why these score weights?</summary><ul className="text-sm text-haze space-y-1 mt-2">{SCORE_REASONS.map(([name, points, reason]) => <li key={name}><b>{name}: {points} points.</b> {reason}</li>)}</ul></details>
         {explorer && <section className="grid grid-cols-2 gap-4" aria-label="Essential results"><Metric label="Sunlight in this date range" value={fmtPct(stats.window.sunlitFrac)} sub={`longest stretch ${fmtDuration(stats.window.longestSunlitMs)}`} tone="text-solar" /><Metric label="Earth visible" value={fmtPct(stats.window.earthFrac)} sub="above terrain and your radio clearance" tone="text-earth" /></section>}
+        <FindWindowPanel />
         <div hidden={explorer} className="space-y-4">
         <LandingDates />
+        {!explorer && <SiteDateHeatmap />}
         <section className="rounded-lg border border-white/10 p-3 space-y-2" aria-label="Night and battery estimate">
           <div className="label">{night.current ? 'Current night: full length' : 'Next night: full length'}</div>
           <p className="text-lg num">{night.durationMs > 0 ? `${night.atLeast ? 'At least ' : ''}${fmtDuration(night.durationMs)}` : 'No sunset found in the next 400 days'}</p>

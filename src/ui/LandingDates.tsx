@@ -27,7 +27,7 @@ export function LandingDates() {
     return () => { cancelled = true; };
   }, [open, count, site, hz, time, days, options]);
   const best = rows.length ? Math.max(...rows.map((r) => r.score)) : 0;
-  return <details onToggle={(e) => setOpen(e.currentTarget.open)} className="border-t border-white/10 pt-3">
+  return <details onToggle={(e) => { if (e.currentTarget.open && useStore.getState().playing) useStore.getState().togglePlay(); setOpen(e.currentTarget.open); }} className="border-t border-white/10 pt-3">
     <summary className="btn cursor-pointer">Compare landing dates</summary>
     <p className="text-sm text-haze my-2">Check daily start times with the same {days}-day mission and settings. This finds the best sampled date, not the best minute of every day.</p>
     <label className="flex gap-2 items-center text-sm">Days to look ahead<input aria-label="Days to compare landing dates" className="btn w-20" type="number" min={1} max={90} value={count} onChange={(e) => setCount(Math.max(1, Math.min(90, Number(e.target.value) || 1)))} /></label>

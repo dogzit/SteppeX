@@ -26,7 +26,7 @@ export function SkyTable() {
     const phase = (1 - Math.cos(angleBetween(st.sun, st.earth) * Math.PI / 180)) / 2;
     const later = moonState(new Date(timeMs + HOUR)); const waxing = (1 - Math.cos(angleBetween(later.sun, later.earth) * Math.PI / 180)) / 2 > phase;
     out.push({ name: 'Earth', color: '#5fc3ff', el: live.earth.el - live.earthHorizon, az: live.earth.az, up: live.earthUp, cross: { upNow: live.earthUp, rise: stats.next.earthrise, set: stats.next.earthset, transit: null, maxEl: 0, searchedUntil: 0 },
-      comment: `${live.earthUp ? 'Visible · direct radio path possible' : 'Below horizon · no direct-to-Earth link'} · sunlit face ${(phase * 100).toFixed(0)}%, ${waxing ? 'growing' : 'shrinking'}` });
+      comment: `${live.earthUp ? 'Visible · direct radio path possible' : live.earth.el > live.earthHorizon ? 'Above terrain, but below your radio clearance' : 'Blocked by terrain · no direct radio view'} · sunlit face ${(phase * 100).toFixed(0)}%, ${waxing ? 'growing' : 'shrinking'}` });
     PLANETS.forEach((b, i) => {
       const a = planetAzEl(s, b, d), cr = planetEvents[i], up = a.el - horizonAt(horizon, a.az) > 0;
       const elong = angleBetween(planetFromMoon(b, d).vec, st.sun);

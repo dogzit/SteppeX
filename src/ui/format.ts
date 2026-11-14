@@ -12,3 +12,12 @@ export function fmtCountdown(ms: number): string {
 export const fmtDateTime = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + 'Z';
 export const fmtDate = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 export const fmtPct = (f: number) => `${(f * 100).toFixed(0)}%`;
+
+/** Everyday summary wording; Expert measurements keep their compact precision display. */
+export function fmtPlainDuration(ms: number): string {
+  if (!Number.isFinite(ms)) return 'an unknown amount of time';
+  const minutes = Math.max(0, Math.floor(ms / 60000));
+  if (minutes === 0) return 'less than a minute';
+  const days = Math.floor(minutes / 1440), hours = Math.floor(minutes % 1440 / 60), rest = minutes % 60;
+  return [[days, 'day'], [hours, 'hour'], [rest, 'minute']].filter(([n]) => Number(n) > 0).map(([n, unit]) => `${n} ${unit}${n === 1 ? '' : 's'}`).join(', ');
+}
