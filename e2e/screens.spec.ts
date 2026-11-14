@@ -28,4 +28,11 @@ test('globe, dashboard, timeline', async ({ page }) => {
   await expect(page.getByText('Custom site')).toBeVisible();
   expect(await page.locator('.pin-label').count()).toBeGreaterThan(0);
   expect(page.url()).toContain('lat=');
+  await page.getByRole('button', { name: 'Compare' }).click();
+  await page.getByRole('button', { name: 'Same date · nearby sites' }).click();
+  await page.waitForTimeout(1500);
+  await page.getByRole('slider', { name: 'Launch slip in days' }).fill('7');
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: 'docs/screens/07-compare.png' });
+  await expect(page.getByText('best')).toBeVisible();
 });

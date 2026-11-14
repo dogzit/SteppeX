@@ -1,9 +1,11 @@
 import { useStore } from '@/state/store';
 import { subPoints } from '@/astro';
 import { useMemo } from 'react';
+import { useCompare } from '@/state/compare';
 
 export function Hud() {
   const { timeMs, setTime, view, setView, showGrid, toggleGrid } = useStore();
+  const compareOpen = useCompare((s) => s.open), setCompareOpen = useCompare((s) => s.setOpen);
   const d = new Date(timeMs);
   const lib = useMemo(() => subPoints(d), [timeMs]); // eslint-disable-line react-hooks/exhaustive-deps
   const utcLocal = d.toISOString().slice(0, 16);
@@ -32,6 +34,8 @@ export function Hud() {
         <button className={`btn ${view === 'polar' ? 'btn-on' : ''}`} onClick={() => setView('polar')} aria-pressed={view === 'polar'}>South pole</button>
         <button className={`btn ${view === 'horizon' ? 'btn-on' : ''}`} onClick={() => setView('horizon')} aria-pressed={view === 'horizon'}>Lander view</button>
         <button className={`btn ${showGrid ? 'btn-on' : ''}`} onClick={toggleGrid} aria-pressed={showGrid}>Grid</button>
+        <span className="w-px h-5 bg-white/10 mx-1" />
+        <button className={`btn ${compareOpen ? 'btn-on' : ''}`} onClick={() => setCompareOpen(!compareOpen)} aria-pressed={compareOpen}>Compare</button>
       </div>
     </header>
   );

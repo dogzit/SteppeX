@@ -3,6 +3,8 @@ import { Hud } from './ui/Hud';
 import { SitePanel } from './ui/SitePanel';
 import { Dashboard } from './ui/Dashboard';
 import { Timeline } from './ui/Timeline';
+import { Compare } from './ui/Compare';
+import { useCompare } from './state/compare';
 import { useStore } from './state/store';
 import { loadEphemTable } from './state/ephemLoader';
 import { loadHorizons } from './state/useHorizon';
@@ -28,6 +30,7 @@ export default function App() {
   useEffect(() => { setGl(hasWebGL()); void loadEphemTable(); void loadHorizons(); }, []);
   usePlayback();
   const view = useStore((s) => s.view);
+  const compareOpen = useCompare((s) => s.open);
   return (
     <div className="relative h-full w-full hud-grid">
       {gl === false ? (
@@ -36,9 +39,10 @@ export default function App() {
         <Suspense fallback={<div className="absolute inset-0 grid place-items-center"><div className="label animate-pulse">Loading lunar surface…</div></div>}>{gl && (view === 'horizon' ? <HorizonDome /> : <Globe />)}</Suspense>
       )}
       <Hud />
-      <SitePanel />
-      <Dashboard />
+      {!compareOpen && <SitePanel />}
+      {!compareOpen && <Dashboard />}
       <Timeline />
+      <Compare />
       <div className="grain" aria-hidden />
     </div>
   );
