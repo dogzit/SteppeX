@@ -1,23 +1,9 @@
 /** Shareable URL state: ?site=id | ?lat=..&lon=.. ; t=ISO ; view ; span ; win ; sunset ; margin ; mode ; fwsun ; fwearth ; fwstart ; fwend */
-export interface UrlState { siteId?: string; custom?: { lat: number; lon: number } | null; timeMs?: number; view?: 'globe' | 'polar' | 'horizon'; span?: 'day' | 'month' | 'year'; windowDays?: number; sunsetDef?: 'center' | 'limb'; earthMarginDeg?: number; mode?: 'planner' | 'explorer'; fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number; fwSelEnd?: number }
+import { parseUrlState, type UrlState } from './urlParse';
+export { parseUrlState, clampTime, normLon, TIME_MIN_MS, TIME_MAX_MS, type UrlState } from './urlParse';
 export function readUrlState(): UrlState {
   if (typeof window === 'undefined') return {};
-  const q = new URLSearchParams(window.location.search), out: UrlState = {};
-  const num = (k: string) => { const v = q.get(k); return v !== null && v !== '' && !Number.isNaN(+v) ? +v : undefined; };
-  const lat = num('lat'), lon = num('lon');
-  if (lat !== undefined && lon !== undefined) { out.custom = { lat, lon }; out.siteId = 'custom'; } else if (q.get('site')) out.siteId = q.get('site')!;
-  const t = q.get('t'); if (t) { const ms = Date.parse(t); if (!Number.isNaN(ms)) out.timeMs = ms; }
-  const view = q.get('view'); if (view === 'globe' || view === 'polar' || view === 'horizon') out.view = view;
-  const span = q.get('span'); if (span === 'day' || span === 'month' || span === 'year') out.span = span;
-  const win = num('win'); if (win && win > 0 && win <= 400) out.windowDays = win;
-  const sd = q.get('sunset'); if (sd === 'center' || sd === 'limb') out.sunsetDef = sd;
-  const m = num('margin'); if (m !== undefined) out.earthMarginDeg = m;
-  const mode = q.get('mode'); if (mode === 'planner' || mode === 'explorer') out.mode = mode;
-  const fwsun = num('fwsun'); if (fwsun !== undefined && fwsun > 0) out.fwSunHours = fwsun;
-  const fwearth = num('fwearth'); if (fwearth !== undefined && fwearth >= 0) out.fwEarthHours = fwearth;
-  const fwstart = q.get('fwstart'), fwend = q.get('fwend');
-  if (fwstart && fwend) { const a = Date.parse(fwstart), b = Date.parse(fwend); if (!Number.isNaN(a) && !Number.isNaN(b)) { out.fwSelStart = a; out.fwSelEnd = b; } }
-  return out;
+  return parseUrlState(window.location.search);
 }
 export function writeUrlState(s: Required<Pick<UrlState, 'siteId' | 'custom' | 'timeMs' | 'view' | 'span' | 'windowDays' | 'sunsetDef' | 'earthMarginDeg' | 'mode'>> & { fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number | null; fwSelEnd?: number | null }) {
   const q = new URLSearchParams();
