@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Hud } from './ui/Hud';
 import { SitePanel } from './ui/SitePanel';
 import { Dashboard } from './ui/Dashboard';
@@ -13,6 +13,7 @@ import { useStore, SYNODIC_MONTH_DAYS_MS } from './state/store';
 import { useCompare } from './state/compare';
 import { loadEphemTable } from './state/ephemLoader';
 import { loadHorizons } from './state/useHorizon';
+import { useCompact } from './ui/useViewport';
 const Globe = lazy(() => import('./scenes/Globe'));
 const HorizonDome = lazy(() => import('./scenes/HorizonDome'));
 
@@ -45,10 +46,33 @@ export default function App() {
   const commands = useCommands(openMeth);
   const onIntroDone = useCallback(() => { setIntro(false); useStore.setState((s) => ({ introDone: true, flyToken: s.flyToken + 1, cinematic: true })); }, []);
 
+  // Below 1280px the site library and dashboard become toggleable drawers (both start closed, so the
+  // globe is the first thing a user sees) instead of always-visible asides; at 1280px+ nothing here
+  // changes the original layout. Opening one drawer closes the other — there's only room for one at a time.
+  const compact = useCompact();
+  const [siteDrawerOpen, setSiteDrawerOpenRaw] = useState(false);
+  const [detailsDrawerOpen, setDetailsDrawerOpenRaw] = useState(false);
+  const setSiteDrawerOpen = useCallback((open: boolean) => { setSiteDrawerOpenRaw(open); if (open) setDetailsDrawerOpenRaw(false); }, []);
+  const setDetailsDrawerOpen = useCallback((open: boolean) => { setDetailsDrawerOpenRaw(open); if (open) setSiteDrawerOpenRaw(false); }, []);
+  const siteId = useStore((s) => s.siteId), custom = useStore((s) => s.custom);
+  const lastPinKey = useRef(`${siteId}|${custom?.lat}|${custom?.lon}`);
+  useEffect(() => {
+    // Placing a pin (globe click, library pick, or the custom-coordinate form) should surface its details
+    // without the user having to open anything manually — but only react to an actual selection change,
+    // never to the initial mount or to a resize crossing the compact breakpoint (the mission clock is
+    // never touched by any of this, by construction).
+    const key = `${siteId}|${custom?.lat}|${custom?.lon}`;
+    if (key !== lastPinKey.current) {
+      lastPinKey.current = key;
+      if (compact) setDetailsDrawerOpen(true);
+    }
+  }, [siteId, custom, compact, setDetailsDrawerOpen]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((v) => !v); return; }
       if (e.key === 'Escape') { setPalette(false); setMeth(false); useCompare.getState().setOpen(false); return; }
+      if (e.key === ' ' && (e.target as HTMLElement | null)?.closest('button')) return;
       if (typing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
       const s = useStore.getState();
       switch (e.key) {
@@ -73,9 +97,15 @@ export default function App() {
       ) : (
         <Suspense fallback={<div className="absolute inset-0 grid place-items-center"><div className="label animate-pulse">Loading lunar surface…</div></div>}>{gl && (view === 'horizon' ? <HorizonDome /> : <Globe />)}</Suspense>
       )}
-      <Hud onPalette={() => setPalette(true)} onMethodology={openMeth} onTour={() => setTour(0)} />
-      {!compareOpen && <SitePanel />}
-      {!compareOpen && <Dashboard explorer={mode === 'explorer'} />}
+      <Hud onPalette={() => setPalette(true)} onMethodology={openMeth} onTour={() => setTour(0)}
+        compact={compact} siteDrawerOpen={siteDrawerOpen} onToggleSiteDrawer={() => setSiteDrawerOpen(!siteDrawerOpen)}
+        detailsDrawerOpen={detailsDrawerOpen} onToggleDetailsDrawer={() => setDetailsDrawerOpen(!detailsDrawerOpen)} />
+      {!compareOpen && (compact
+        ? <>
+            {siteDrawerOpen && <SitePanel compact onClose={() => setSiteDrawerOpen(false)} />}
+            {detailsDrawerOpen && <Dashboard compact explorer={mode === 'explorer'} onClose={() => setDetailsDrawerOpen(false)} />}
+          </>
+        : <><SitePanel /><Dashboard explorer={mode === 'explorer'} /></>)}
       <Timeline />
       <Compare />
       <Toasts />

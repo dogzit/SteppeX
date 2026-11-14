@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMetrics } from '@/state/useMetrics';
 import { useStore, useActiveSite } from '@/state/store';
 import { fmtLat, fmtLon } from '@/data/sites';
-import { fmtCountdown, fmtDateTime, fmtDuration, fmtPct } from './format';
-import { SCORE_WEIGHTS, subPoints } from '@/astro';
-import { useMemo } from 'react';
+import { fmtCountdown, fmtDate, fmtDateTime, fmtDuration, fmtPct } from './format';
+import { SCORE_WEIGHTS, MARGIN_BATTERY_HOURS, NEXT_EVENT_HORIZON_DAYS, subPoints } from '@/astro';
 import { SkyTable } from './SkyTable';
 import { ExplorerCallouts } from './Explorer';
 import { FindWindowPanel } from './FindWindowPanel';
 
 const CONF: Record<string, [string, string]> = { high: ['Verified', 'text-emerald-300 border-emerald-400/30'], medium: ['Published · limited precision', 'text-sky-300 border-sky-400/30'], approx: ['Approximate region', 'text-rose-300 border-rose-400/30'] };
+const NONE_WITHIN = `none within ${NEXT_EVENT_HORIZON_DAYS} d`;
 
-export function Dashboard({ explorer = false }: { explorer?: boolean }) {
+export function Dashboard({ explorer = false, compact = false, onClose }: { explorer?: boolean; compact?: boolean; onClose?: () => void }) {
   const site = useActiveSite();
   const { timeMs, setTime, windowDays, setWindowDays, sunsetDef, setSunsetDef, earthMarginDeg, setEarthMargin } = useStore();
   const { stats, live, horizon } = useMetrics();
@@ -21,8 +21,23 @@ export function Dashboard({ explorer = false }: { explorer?: boolean }) {
   const tone = score.total >= 70 ? 'text-emerald-300' : score.total >= 40 ? 'text-solar' : 'text-rose-300';
   const dte = stats.window.earthWindows.filter((w) => w.end > timeMs).slice(0, 4);
   const lib = useMemo(() => subPoints(new Date(timeMs)).subEarth, [timeMs]);
+  // The next transition is computed exactly at the selected timestamp (useMetrics falls back to a fresh
+  // recompute at `timeMs` whenever the hour-bucketed cache's events have already passed it) — see
+  // src/state/useMetrics.ts. "Time to next transition" and "longest continuous darkness" are deliberately
+  // two separate computations: the first is a bisection-refined instant from nextEvents(); the second is
+  // the longest run in stats.window.sunWindows/darkWindows over the whole mission window. Neither
+  // approximates the other.
+  const nextSunTransition = live.sunUp ? stats.next.sunset : stats.next.sunrise;
+  const windowLabel = `Mission window · ${windowDays} ${windowDays === 1 ? 'day' : 'days'} · ${fmtDate(stats.window.startMs)} → ${fmtDate(stats.window.endMs)}`;
+  const scoreRows = [
+    ['Power', score.power, SCORE_WEIGHTS.power, '#ffb547'],
+    ['Comms', score.comms, SCORE_WEIGHTS.comms, '#5fc3ff'],
+    ['Continuity', score.continuity, SCORE_WEIGHTS.continuity, '#9ef0c0'],
+    ['Margin', score.margin, SCORE_WEIGHTS.margin, '#e7edf5'],
+  ] as const;
+
   return (
-    <aside className="absolute right-4 top-28 bottom-36 z-20 w-[25rem] max-w-[calc(100vw-2rem)] glass rounded-xl flex flex-col overflow-hidden" aria-label="Power and communications dashboard">
+    <aside className={compact ? 'compact-drawer absolute inset-x-4 top-28 bottom-36 z-30 glass rounded-xl flex flex-col overflow-hidden' : 'absolute right-4 top-28 bottom-36 z-20 w-[25rem] max-w-[calc(100vw-2rem)] glass rounded-xl flex flex-col overflow-hidden'} aria-label="Power and communications dashboard">
       <div className="p-4 border-b border-white/10">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -31,38 +46,66 @@ export function Dashboard({ explorer = false }: { explorer?: boolean }) {
             <div className="num text-xs text-haze mt-0.5">{fmtLat(site.lat)} · {fmtLon(site.lon)}{site.heightKm ? ` · h ${site.heightKm.toFixed(2)} km` : ''}</div>
             <div className="num text-[10px] text-white/45" title="Sub-Earth point: selenographic latitude/longitude of the point where Earth is overhead">libration · sub-Earth {lib.lat.toFixed(2)}° {lib.lon.toFixed(2)}°</div>
           </div>
-          <span className={`label border rounded-full px-2 py-0.5 shrink-0 ${conf[1]}`}>{conf[0]}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className={`label border rounded-full px-2 py-0.5 ${conf[1]}`}>{conf[0]}</span>
+            {onClose && <button className="btn" onClick={onClose} aria-label="Close site details">✕</button>}
+          </div>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {explorer && <ExplorerCallouts />}
-        <section aria-label="Mission viability score" className="flex items-center gap-4">
-          <div>
-            <div className="label">Viability · next {windowDays} d</div>
-            <div className={`num text-5xl leading-none ${tone}`}>{score.total.toFixed(0)}<span className="text-base text-white/40">/100</span></div>
-          </div>
-          <div className="flex-1 space-y-1">
-            {([['Power', score.power, SCORE_WEIGHTS.power, '#ffb547'], ['Comms', score.comms, SCORE_WEIGHTS.comms, '#5fc3ff'], ['Continuity', score.continuity, SCORE_WEIGHTS.continuity, '#9ef0c0'], ['Margin', score.margin, SCORE_WEIGHTS.margin, '#e7edf5']] as const).map(([l, v, w, c]) => (
-              <div key={l} className="flex items-center gap-2 text-[10px]"><span className="label w-16">{l} <span className="text-white/35">{(w * 100).toFixed(0)}%</span></span><div className="flex-1 h-1.5 bg-white/8 rounded"><div className="h-full rounded" style={{ width: `${v}%`, background: c }} /></div><span className="num w-7 text-right">{v.toFixed(0)}</span></div>
-            ))}
-            <button className="label normal-case tracking-normal text-white/50 hover:text-white/80 underline decoration-dotted" onClick={() => setShowFormula((v) => !v)} aria-expanded={showFormula}>{showFormula ? 'hide formula' : 'how is this computed?'}</button>
-            {showFormula && <p className="text-[11px] text-white/65 leading-snug">score = 40·(mean illuminated fraction of the solar disc) + 30·(fraction of time Earth ≥ {earthMarginDeg}° above the terrain horizon) + 15·(longest continuous sunlight ÷ window) + 15·min(1, hours until the next loss of sunlight ÷ 72). Window starts at the current time.</p>}
+        <section aria-label="Mission viability score" className="space-y-2">
+          <div className="label">{windowLabel}</div>
+          <div className="flex items-start gap-4">
+            <div>
+              <div className="label">Viability</div>
+              <div className={`num text-5xl leading-none ${tone}`}>{score.total.toFixed(0)}<span className="text-base text-white/40">/100</span></div>
+            </div>
+            <div className="flex-1 space-y-1.5 min-w-0">
+              {/* Conditions at the selected time, separate from the window score above: the next terrain-aware
+                  transition after `timeMs` (live.sunUp and nextSunTransition both resolve exactly at timeMs). */}
+              <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs ${live.sunUp ? 'bg-solar/15 text-solar' : 'bg-white/8 text-white/70'}`}>
+                <span aria-hidden>{live.sunUp ? '☀' : '☾'}</span>
+                <span>{live.sunUp ? 'Sunlit now' : 'Dark now'} · {live.sunUp ? 'sunset' : 'sunrise'} in {nextSunTransition !== null ? fmtDuration(nextSunTransition - timeMs) : NONE_WITHIN}</span>
+              </div>
+              {score.margin === 0 && (
+                <p className="text-[11px] text-rose-300 leading-snug">
+                  Zero margin points: this site is dark at the selected time. The longest continuous darkness in this window is <b>{fmtDuration(stats.window.longestDarkMs)}</b>, The margin score uses a {MARGIN_BATTERY_HOURS} h sunlight lead-time target.
+                </p>
+              )}
+              {scoreRows.map(([l, v, w, c]) => {
+                const possible = w * 100, earned = v * w;
+                return (
+                  <div key={l} className="flex items-center gap-2 text-[10px]">
+                    <span className="label w-16 shrink-0">{l}</span>
+                    <div className="flex-1 h-1.5 bg-white/8 rounded"><div className="h-full rounded" style={{ width: `${v}%`, background: c }} /></div>
+                    <span className="num w-14 text-right shrink-0" title={`${l}: earned ${earned.toFixed(1)} of ${possible.toFixed(0)} possible points (weight ${(w * 100).toFixed(0)}%)`}>{earned.toFixed(1)}/{possible.toFixed(0)}</span>
+                  </div>
+                );
+              })}
+              <div className="flex items-center gap-2 text-[10px] pt-1 mt-0.5 border-t border-white/10">
+                <span className="label w-16 shrink-0">Total</span>
+                <span className="flex-1" />
+                <span className="num w-14 text-right shrink-0 font-semibold text-white">{score.total.toFixed(1)}/100</span>
+              </div>
+              <button className="label normal-case tracking-normal text-white/50 hover:text-white/80 underline decoration-dotted" onClick={() => setShowFormula((v) => !v)} aria-expanded={showFormula}>{showFormula ? 'hide' : 'Why this score?'}</button>
+              {showFormula && <p className="text-[11px] text-white/65 leading-snug">Each component earns up to its weight × 100 possible points, from: Power = mean illuminated fraction of the solar disc · Comms = fraction of time Earth is ≥ {earthMarginDeg}° above the terrain horizon · Continuity = longest continuous sunlight ÷ window length · Margin = min(1, hours until the next loss of sunlight ÷ {MARGIN_BATTERY_HOURS}). All over the mission window above.</p>}
+            </div>
           </div>
         </section>
         <section className="grid grid-cols-2 gap-x-4 gap-y-3" aria-label="Live metrics">
           <Metric label="Sun elevation" value={`${live.sun.el.toFixed(2)}°`} sub={`az ${live.sun.az.toFixed(1)}° · horizon ${live.sunHorizon.toFixed(2)}°`} tone={live.sunUp ? 'text-solar' : 'text-white/45'} />
           <Metric label="Solar disc visible" value={fmtPct(live.sunFrac)} sub={live.sunUp ? 'sunlit' : 'in shadow'} tone={live.sunUp ? 'text-solar' : 'text-white/45'} />
-          <Metric label={live.sunUp ? 'T-minus sunset' : 'T-minus sunrise'} value={fmtCountdown((live.sunUp ? stats.next.sunset : stats.next.sunrise) !== null ? (live.sunUp ? stats.next.sunset! : stats.next.sunrise!) - timeMs : NaN)} sub={(live.sunUp ? stats.next.sunset : stats.next.sunrise) !== null ? fmtDateTime(live.sunUp ? stats.next.sunset! : stats.next.sunrise!) : 'none within 400 d'} tone="text-white" live />
-          <Metric label={live.sunUp ? 'Next sunrise after' : 'Next sunset after'} value={stats.next.sunrise !== null && stats.next.sunset !== null ? fmtDuration((live.sunUp ? stats.next.sunrise : stats.next.sunset) - timeMs) : '—'} sub={live.sunUp ? (stats.next.sunrise ? fmtDateTime(stats.next.sunrise) : 'none within 400 d') : (stats.next.sunset ? fmtDateTime(stats.next.sunset) : 'none within 400 d')} tone="text-white/85" />
-          <Metric label={`Sunlight · ${windowDays} d`} value={fmtPct(stats.window.sunlitFrac)} sub={`effective ${fmtPct(stats.window.effectiveSunFrac)} (disc-weighted)`} tone="text-solar" />
+          <Metric label={live.sunUp ? 'Next sunrise after' : 'Next sunset after'} value={stats.next.sunrise !== null && stats.next.sunset !== null ? fmtDuration((live.sunUp ? stats.next.sunrise : stats.next.sunset) - timeMs) : '—'} sub={live.sunUp ? (stats.next.sunrise ? fmtDateTime(stats.next.sunrise) : NONE_WITHIN) : (stats.next.sunset ? fmtDateTime(stats.next.sunset) : NONE_WITHIN)} tone="text-white/85" />
           <Metric label="Longest continuous sun" value={fmtDuration(stats.window.longestSunlitMs)} sub={`longest dark ${fmtDuration(stats.window.longestDarkMs)}`} tone="text-solar" />
+          <Metric label="Sunlight" value={fmtPct(stats.window.sunlitFrac)} sub={`effective ${fmtPct(stats.window.effectiveSunFrac)} (disc-weighted)`} tone="text-solar" />
+          <Metric label="Earth visible" value={fmtPct(stats.window.earthFrac)} sub={`power + DTE ${fmtPct(stats.window.bothFrac)}`} tone="text-earth" />
           <Metric label="Earth elevation" value={`${live.earth.el.toFixed(2)}°`} sub={`az ${live.earth.az.toFixed(1)}° · disc ${(2 * live.earth.radiusDeg).toFixed(2)}°`} tone={live.earthUp ? 'text-earth' : 'text-white/45'} />
-          <Metric label={live.earthUp ? 'T-minus Earthset' : 'T-minus Earthrise'} value={fmtCountdown((live.earthUp ? stats.next.earthset : stats.next.earthrise) !== null ? (live.earthUp ? stats.next.earthset! : stats.next.earthrise!) - timeMs : NaN)} sub={(live.earthUp ? stats.next.earthset : stats.next.earthrise) !== null ? fmtDateTime(live.earthUp ? stats.next.earthset! : stats.next.earthrise!) : live.earthUp ? 'Earth stays up ≥ 400 d' : 'no Earthrise within 400 d'} tone="text-earth" live />
-          <Metric label={`Earth visible · ${windowDays} d`} value={fmtPct(stats.window.earthFrac)} sub={`power + DTE ${fmtPct(stats.window.bothFrac)}`} tone="text-earth" />
+          <Metric label={live.earthUp ? 'T-minus Earthset' : 'T-minus Earthrise'} value={fmtCountdown((live.earthUp ? stats.next.earthset : stats.next.earthrise) !== null ? (live.earthUp ? stats.next.earthset! : stats.next.earthrise!) - timeMs : NaN)} sub={(live.earthUp ? stats.next.earthset : stats.next.earthrise) !== null ? fmtDateTime(live.earthUp ? stats.next.earthset! : stats.next.earthrise!) : live.earthUp ? `Earth stays up ≥ ${NEXT_EVENT_HORIZON_DAYS} d` : `no Earthrise within ${NEXT_EVENT_HORIZON_DAYS} d`} tone="text-earth" live />
         </section>
         <section aria-label="Direct-to-Earth windows">
-          <div className="label mb-1">DTE windows (next in window)</div>
-          {dte.length === 0 ? <div className="text-xs text-white/50">No Earth visibility in the next {windowDays} days.</div> : (
+          <div className="label mb-1">DTE windows (within the mission window above)</div>
+          {dte.length === 0 ? <div className="text-xs text-white/50">No Earth visibility in the mission window.</div> : (
             <ul className="space-y-1">{dte.map((w, i) => (
               <li key={i} className="flex items-center justify-between text-[11px] num"><button className="hover:text-earth text-left" onClick={() => setTime(Math.max(w.start, timeMs))}>{w.openStart ? '… ' : ''}{fmtDateTime(w.start)} → {fmtDateTime(w.end)}{w.openEnd ? ' …' : ''}</button><span className="text-earth">{fmtDuration(w.end - w.start)}</span></li>
             ))}</ul>

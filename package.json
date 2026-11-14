@@ -1,7 +1,7 @@
 {
   "name": "lunar-navigator",
   "version": "1.0.0",
-  "description": "",
+  "description": "Lunar Navigator — explore lunar landing sites, sunlight, and direct-to-Earth visibility.",
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
@@ -9,11 +9,12 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
-    "data": "tsx scripts/build-data.ts",
+    "data": "npm run data:ephem && npm run data:textures && npm run data:horizons && npm run data:tiles",
     "data:ephem": "tsx scripts/build-ephemeris.ts",
     "data:textures": "tsx scripts/build-normalmap.ts && python3 scripts/build-textures.py",
     "data:horizons": "tsx scripts/build-horizons.ts",
     "data:tiles": "tsx scripts/build-dem-tiles.ts",
+    "validate": "tsx scripts/validate.ts",
     "validate:horizon": "tsx scripts/validate-horizon.ts"
   },
   "keywords": [],

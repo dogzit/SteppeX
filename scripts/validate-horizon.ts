@@ -34,6 +34,8 @@ Our 2024–2025 hourly sweep with the LOLA-derived horizon (eye 2 m) against the
 ${rows.join('\n')}
 
 Avg illumination = mean visible fraction of the solar disc; solar visibility = fraction of time any part of the disc is above the terrain. Regenerate with \`npm run validate:horizon\`.
+
+**Whipple (north) note.** At the published point our 240 m/px profile gives 43.9 %, but the best pixel within ±720 m gives 77.0 % (scripts/dev/check-whipple.ts). The published 82.9 % comes from a 20 m/px DEM where the rim crest is resolved. Conclusion: at the poles a few hundred metres of position change illumination by tens of percent, so (a) our south-pole numbers use the 40 m/px tile, (b) coarse-tile results (north pole, custom pins) are labelled as such in the app, and (c) the app's horizon profile should be read as "this pixel", not "this region".
 `;
 const path = 'VALIDATION.md'; const cur = readFileSync(path, 'utf8'); const idx = cur.indexOf('\n## Terrain illumination');
 writeFileSync(path, (idx >= 0 ? cur.slice(0, idx) : cur) + md);

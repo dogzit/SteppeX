@@ -3,7 +3,7 @@ test.describe.configure({ mode: 'serial' });
 const T = '2026-11-20T12:00Z';
 test('globe, dashboard, timeline', async ({ page }) => {
   await page.goto(`/?site=artemis-cr&t=${T}&nointro`);
-  await expect(page.getByText('NAVIGATOR')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'LUNAR NAVIGATOR' })).toBeVisible();
   await page.waitForTimeout(4500);
   await page.screenshot({ path: 'docs/screens/01-globe.png' });
   await expect(page.getByText('Viability')).toBeVisible();
@@ -46,7 +46,7 @@ test('globe, dashboard, timeline', async ({ page }) => {
   await page.keyboard.press('Enter');
   await page.waitForTimeout(2500);
   await expect(page.getByText(/Blue Ghost M1/).first()).toBeVisible();
-  await page.getByRole('button', { name: 'Method' }).click();
+  await page.getByRole('button', { name: 'Methodology and limitations', exact: true }).click();
   await expect(page.getByText('How Lunar Navigator computes')).toBeVisible();
   await page.screenshot({ path: 'docs/screens/10-methodology.png' });
 });

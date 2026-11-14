@@ -4,7 +4,14 @@ import { buildSeries, siteSeries, visibility, windows, type Window } from '@/ast
 import { useStore, useActiveSite, SPAN_MS, SPEEDS, type Span } from '@/state/store';
 import { useOptions } from '@/state/useMetrics';
 import { useHorizon } from '@/state/useHorizon';
-import { fmtDateTime, fmtDuration, fmtPct } from './format';
+import { useViewportWidth } from './useViewport';
+import { fmtDate, fmtDateTime, fmtDuration, fmtPct } from './format';
+
+/** "1 day" / "29.5 days" / "365.3 days" — derived from the actual span duration in ms, not hardcoded. */
+function fmtSpanDays(days: number): string {
+  if (Number.isInteger(days)) return `${days} ${days === 1 ? 'day' : 'days'}`;
+  return `${days.toFixed(1)} days`;
+}
 import { SYNODIC_MONTH_DAYS } from '@/astro';
 
 const STEP: Record<Span, number> = { day: 120_000, month: 1200_000, year: 7200_000 };
@@ -30,18 +37,36 @@ export function Timeline() {
 
   const ref = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
-  const W = 1000, H = 84, PAD_L = 8, PAD_R = 8, laneH = 16, top = 6;
-  const x = useMemo(() => scaleUtc().domain([new Date(start), new Date(start + spanMs)]).range([PAD_L, W - PAD_R]), [start, spanMs]);
-  const ticks = x.ticks(span === 'day' ? 8 : span === 'month' ? 10 : 12);
+  const viewportWidth = useViewportWidth();
+  const [phoneExpanded, setPhoneExpanded] = useState(false);
+  const W = viewportWidth < 1280 ? Math.max(200, viewportWidth - (viewportWidth < 640 ? 110 : 146)) : 1000, H = 84, PAD_L = 8, PAD_R = 8, laneH = 16, top = 6;
+  const x = useMemo(() => scaleUtc().domain([new Date(start), new Date(start + spanMs)]).range([PAD_L, W - PAD_R]), [start, spanMs, W]);
+  const ticks = x.ticks(viewportWidth < 640 ? 3 : span === 'day' ? 8 : span === 'month' ? 10 : 12);
   const toTime = (clientX: number) => { const r = ref.current!.getBoundingClientRect(); return x.invert(PAD_L + ((clientX - r.left) / r.width) * (W - PAD_L - PAD_R)).getTime(); };
   const dragging = useRef(false);
   const idxAt = (t: number) => Math.max(0, Math.min(data.ss.n - 1, Math.round((t - start) / dt)));
   const hv = hover !== null ? idxAt(hover) : null;
-  const summary = `Timeline for ${site.name} over one ${span}: sunlit ${fmtPct(data.sunFrac)}, Earth visible ${fmtPct(data.earthFrac)}, both ${fmtPct(data.bothFrac)}.`
+  // Derived from the actual window this chart covers (start, start+spanMs) — a distinct interval from the
+  // Dashboard's forward-looking mission window (see windowLabel there): this one is centred near "now"
+  // (anchored 30% in) and spans a whole day/lunar-month/year, so its sunlit fraction legitimately differs
+  // from the Dashboard's even when both use the same site and Options — they are different metrics over
+  // different intervals by design, not a computation bug (verified: both read the same siteSeries/
+  // visibility/windows pipeline and the same useOptions()/useHorizon() values).
+  const timelineHeading = `Timeline · ${fmtSpanDays(spanMs / 86400_000)} · ${fmtDate(start)} → ${fmtDate(start + spanMs)}`;
+  const statLine = span === 'day' ? `Sun ${fmtPct(data.sunFrac)}` : `sun ${fmtPct(data.sunFrac)} · earth ${fmtPct(data.earthFrac)} · both ${fmtPct(data.bothFrac)} · longest sun ${fmtDuration(Math.max(0, ...data.sun.map((w) => w.end - w.start)))}`;
+  const summary = `${timelineHeading}. ${site.name}: sunlit ${fmtPct(data.sunFrac)}, Earth visible ${fmtPct(data.earthFrac)}, both ${fmtPct(data.bothFrac)}.`
     + (fwSelStart !== null && fwSelEnd !== null ? ` Highlighted mission window: ${fmtDateTime(fwSelStart)} to ${fmtDateTime(fwSelEnd)}.` : '');
 
+  if (viewportWidth < 640 && !phoneExpanded) return (
+    <footer className="phone-timebar glass" aria-label="Timeline and time controls">
+      <button className={`btn ${playing ? 'btn-on' : ''}`} onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'} aria-pressed={playing}>{playing ? '❚❚' : '▶'}</button>
+      <span className="num text-[11px] text-haze">{new Date(timeMs).toISOString().slice(0, 16).replace('T', ' ')} UTC</span>
+      <button className="btn" aria-expanded={false} onClick={() => setPhoneExpanded(true)}>Timeline ↑</button>
+    </footer>
+  );
+
   return (
-    <footer className="absolute left-4 right-4 bottom-3 z-20 glass rounded-xl px-3 py-2 flex items-center gap-3" aria-label="Timeline and time controls">
+    <footer className="app-timeline absolute left-4 right-4 bottom-3 z-20 glass rounded-xl px-3 py-2 flex items-center gap-3" aria-label="Timeline and time controls">
       <div className="flex items-center gap-1 shrink-0" role="group" aria-label="Transport">
         <button className="btn num" title="Back one lunar day (29.53 d)" aria-label="Back one lunar day" onClick={() => stepTime(-SYNODIC_MONTH_DAYS * 86400_000)}>«☾</button>
         <button className="btn num" title="Back one Earth day" aria-label="Back one day" onClick={() => stepTime(-86400_000)}>−1d</button>
@@ -55,7 +80,14 @@ export function Timeline() {
       <div className="flex flex-col justify-start pt-[6px] shrink-0 w-20" aria-hidden>
         {LANES.map((l) => <div key={l.key} className="label h-4 leading-4 truncate" style={{ color: l.color }}>{l.label}</div>)}
       </div>
-      <div className="relative flex-1 min-w-0">
+      <div className="relative flex-1 min-w-0 flex flex-col gap-0.5">
+        {/* In normal document flow, above the bars, so wrapping at narrow widths pushes the chart down
+            instead of overlapping it (this used to be absolutely positioned with a fixed -20px offset,
+            which clipped or overlapped the bars whenever this text wrapped to two lines). */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-[10px] label normal-case tracking-normal">
+          <span className="text-white/70">{timelineHeading}</span>
+          <span className="num text-white/50">{statLine}</span>
+        </div>
         <svg ref={ref} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-[84px] block cursor-crosshair select-none" role="img" aria-label={summary}
           onPointerDown={(e) => { dragging.current = true; (e.target as Element).setPointerCapture?.(e.pointerId); setTime(toTime(e.clientX)); }}
           onPointerMove={(e) => { const t = toTime(e.clientX); setHover(t); if (dragging.current) setTime(t); }}
@@ -91,11 +123,11 @@ export function Timeline() {
             {fmtDateTime(hover)} · <span className="text-solar">☀ {data.ss.sunEl[hv].toFixed(1)}°</span> · <span className="text-earth">⊕ {data.ss.earthEl[hv].toFixed(1)}°</span>
           </div>
         )}
-        <div className="absolute right-1 -top-5 label normal-case tracking-normal num text-white/50">{span === 'day' ? 'Sun ' + fmtPct(data.sunFrac) : `sun ${fmtPct(data.sunFrac)} · earth ${fmtPct(data.earthFrac)} · both ${fmtPct(data.bothFrac)} · longest sun ${fmtDuration(Math.max(0, ...data.sun.map((w) => w.end - w.start)))}`}</div>
       </div>
       <div className="flex items-center gap-1 shrink-0" role="group" aria-label="Span">
         {(['day', 'month', 'year'] as Span[]).map((s) => <button key={s} className={`btn ${span === s ? 'btn-on' : ''}`} aria-pressed={span === s} onClick={() => setSpan(s)}>{s === 'month' ? 'Lunar month' : s[0].toUpperCase() + s.slice(1)}</button>)}
       </div>
+      {viewportWidth < 640 && <button className="phone-timeline-close btn" aria-expanded={true} onClick={() => setPhoneExpanded(false)}>Close timeline ↓</button>}
     </footer>
   );
 }

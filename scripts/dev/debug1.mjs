@@ -1,0 +1,13 @@
+import { chromium } from '@playwright/test';
+const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 880, height: 900 } });
+const p = await ctx.newPage();
+p.on('pageerror', (e) => console.log('[pageerror]', e.message));
+p.on('console', (m) => { if (m.type() === 'error') console.log('[console]', m.text().slice(0,300)); });
+await p.goto('http://localhost:4173/?site=artemis-cr&t=2026-11-20T12:00Z&nointro');
+await p.waitForTimeout(1500);
+console.log('mission time before:', await p.locator('header div.num.text-lg').innerText());
+await p.getByLabel('Set date and time (UTC)').fill('2026-11-25T23:41');
+await p.waitForTimeout(800);
+console.log('input value now:', await p.getByLabel('Set date and time (UTC)').inputValue());
+console.log('mission time after fill:', await p.locator('header div.num.text-lg').innerText());
+await b.close();

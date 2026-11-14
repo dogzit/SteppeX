@@ -10,6 +10,10 @@ export interface Options {
   earthMarginDeg: number;
 }
 export const DEFAULT_OPTIONS: Options = { sunsetDef: 'center', earthMarginDeg: 0 };
+/** How far ahead nextEvents() searches for a transition before giving up and reporting "none found". */
+export const NEXT_EVENT_HORIZON_DAYS = 400;
+/** Assumed battery survival time (h) without sunlight; also the margin score's divisor. Not yet user-configurable. */
+export const MARGIN_BATTERY_HOURS = 72;
 
 /** Fraction of a disc of radius r whose centre sits h above a straight horizon (0..1). */
 export function discFraction(h: number, r: number): number {
@@ -58,7 +62,7 @@ export function refine(site: Site, hz: HorizonProfile, body: 'sun' | 'earth', tA
 
 export interface NextEvents { sunset: number | null; sunrise: number | null; earthset: number | null; earthrise: number | null; searchedUntil: number }
 /** First future transitions within `horizonDays`, searched on a coarse grid then refined. */
-export function nextEvents(site: Site, hz: HorizonProfile, nowMs: number, o: Options = DEFAULT_OPTIONS, horizonDays = 400, stepMs = 3600_000): NextEvents {
+export function nextEvents(site: Site, hz: HorizonProfile, nowMs: number, o: Options = DEFAULT_OPTIONS, horizonDays = NEXT_EVENT_HORIZON_DAYS, stepMs = 3600_000): NextEvents {
   const t0 = Math.floor(nowMs / stepMs) * stepMs, n = Math.ceil((horizonDays * 86400_000) / stepMs) + 1;
   const ss = siteSeries(buildSeries(t0, stepMs, n), site), v = visibility(ss, hz, o);
   const find = (flags: Uint8Array, body: 'sun' | 'earth', to: 0 | 1): number | null => {
@@ -98,8 +102,8 @@ export function computeMetrics(site: Site, hz: HorizonProfile, nowMs: number, wi
   const next = nextEvents(site, hz, nowMs, o);
   const windowMs = windowDays * 86400_000;
   const power = eff / n, comms = earthN / n, continuity = Math.min(1, longest(sunWindows) / windowMs);
-  const hoursToDark = sunClear + sunOffset(o) > 0 ? (next.sunset ? (next.sunset - nowMs) / 3600_000 : 72) : 0;
-  const margin = Math.min(1, hoursToDark / 72);
+  const hoursToDark = sunClear + sunOffset(o) > 0 ? (next.sunset ? (next.sunset - nowMs) / 3600_000 : MARGIN_BATTERY_HOURS) : 0;
+  const margin = Math.min(1, hoursToDark / MARGIN_BATTERY_HOURS);
   const total = 100 * (SCORE_WEIGHTS.power * power + SCORE_WEIGHTS.comms * comms + SCORE_WEIGHTS.continuity * continuity + SCORE_WEIGHTS.margin * margin);
   return {
     now: { sunEl: sky.sun.el, sunAz: sky.sun.az, earthEl: sky.earth.el, earthAz: sky.earth.az, sunClear, earthClear, sunFrac: discFraction(sunClear, SUN_RADIUS_DEG_MEAN), sunUp: sunClear + sunOffset(o) > 0, earthUp: earthClear > 0, earthRadiusDeg: sky.earth.radiusDeg, sunRadiusDeg: sky.sun.radiusDeg, earthDistKm: sky.earth.distKm },

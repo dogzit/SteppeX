@@ -12,7 +12,7 @@
 9. **Lander view**: Earth's axial orientation is approximate; the star field is procedural (decorative), not a catalogue.
 10. **Time range**: the precomputed table covers 2023–2031; other dates fall back to exact ephemeris (slower, still correct). Event searches stop at 400 days (60 days for planets).
 11. **Timeline sampling**: 2 min / 20 min / 2 h for day / month / year views; terrain flicker shorter than the step can be missed in the year view.
-12. **Mobile and kiosk layouts** were not finished; the layout targets ≥ 1280 px wide screens.
+12. **Compact layouts** use Sites/Details drawers below 1280 px and have been checked at 390 × 844 and 880 × 900. Dedicated kiosk and short landscape-screen layouts remain unfinished.
 
 ## Next steps
 - South-pole **illumination heatmap** (fraction of a chosen month in sunlight / Earth view) from a build-time horizon grid, PSR overlay and a "peak of eternal light" finder.
@@ -20,4 +20,4 @@
 - Panel-geometry power estimates and simple thermal/battery survival margins.
 - Ground-station and relay visibility; antenna pattern masks per azimuth.
 - Artemis III region polygons when NASA publishes them; CLPS manifest sync.
-- Mobile layout, kiosk/projector mode, narrated tour.
+- Short landscape-screen layout, kiosk/projector mode, narrated tour.

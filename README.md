@@ -1,6 +1,8 @@
 # Lunar Navigator
 
-**NASA Space Apps Challenge 2026 · "Lunar Landing Site Navigator" (CLPS)**
+**NASA Space Apps Challenge 2026 · CLPS**
+
+The project is named **Lunar Navigator** throughout the app and documentation; `lunar-navigator` is its npm package identifier.
 
 Pick a landing site and a date. In under ten seconds, see whether it has sunlight and a line of sight to Earth, what the lander would actually see on the horizon, and what a launch slip costs.
 
@@ -18,7 +20,8 @@ npm run dev        # http://localhost:5173
 npm run build      # static site in dist/ (deploy to Vercel, GitHub Pages: BASE_PATH=/repo/ npm run build)
 npm test           # Vitest: ephemeris vs JPL Horizons, events, terrain sweep
 npm run typecheck
-npx playwright test  # screenshots in docs/screens
+npx playwright install chromium  # first-time browser setup
+npx playwright test  # uses the production build above; screenshots in docs/screens
 ```
 
 Data pipeline (already run; outputs are committed in `public/data` and `public/textures`):
@@ -29,6 +32,7 @@ npm run data:ephem                  # hourly body-fixed Sun/Earth table 2023–2
 npm run data:textures               # Moon colour + LOLA relief normal map (needs .cache/ sources)
 npm run data:horizons               # terrain horizon profiles for the 31 library sites
 npm run data:tiles                  # downsampled DEM tiles for custom pins
+npm run data                        # runs all four data build tasks above; needs cached sources
 npm run validate && npm run validate:horizon   # regenerates VALIDATION.md
 ```
 
@@ -69,5 +73,3 @@ Source layout: `src/astro` (pure TypeScript engine, no DOM), `src/scenes` (react
 NASA/GSFC/Arizona State University LRO **LOLA** GDR (PDS Geosciences Node) · NASA **SVS** CGI Moon Kit (LROC WAC colour) · NASA **Blue Marble** · NASA/JPL **Horizons** · LROC / Wagner et al. 2017 (Apollo coordinates) · ISRO, CNSA, JAXA, Intuitive Machines, Firefly Aerospace, NASA LRO (recent landings) · LPSC 2024 #1695 (Artemis III candidate points) · Gläser et al. 2018 (polar illumination) · [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT) · three.js, react-three-fiber, drei, D3, Zustand, Tailwind, Vite.
 
 Built for NASA Space Apps 2026. Not affiliated with NASA.
-
-# NASA

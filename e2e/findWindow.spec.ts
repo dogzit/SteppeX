@@ -5,7 +5,10 @@ const T = '2026-11-20T12:00Z';
 
 async function openPanel(page: Page) {
   await page.goto(`/?site=${SITE}&t=${T}&nointro`);
-  await expect(page.getByText('NAVIGATOR')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'LUNAR NAVIGATOR' })).toBeVisible();
+  if ((page.viewportSize()?.width ?? 1440) < 1280) {
+    await page.getByRole('button', { name: 'Details', exact: true }).click();
+  }
   await page.getByRole('button', { name: 'Find a window' }).click();
 }
 

@@ -12,7 +12,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
   return (
     <div className="absolute inset-0 z-[60] bg-ink grid place-items-center cursor-pointer" onClick={onDone} role="status" aria-live="polite">
       <div className="text-center">
-        <div className="label mb-2">NASA Space Apps 2026 · Lunar Landing Site Navigator</div>
+        <div className="label mb-2">NASA Space Apps 2026 · CLPS</div>
         <div className="text-5xl font-semibold tracking-tight">LUNAR <span className="text-solar">NAVIGATOR</span></div>
         <div className="mt-6 space-y-1 text-left inline-block">
           {lines.map(([at, text, ok]) => <div key={text} className={`num text-xs transition-opacity duration-300 ${t >= at ? 'opacity-100' : 'opacity-0'}`}><span className={ok ? 'text-emerald-300' : 'text-solar'}>{ok ? '●' : '○'}</span> <span className="text-white/75">{text}</span></div>)}
