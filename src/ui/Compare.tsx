@@ -85,7 +85,7 @@ export function Compare() {
   const leaders = leadingScores(scenarios.filter((s) => rows[s.key]).map((s) => ({ key: s.key, total: rows[s.key].metrics.score.total })));
   if (!open) return null;
   return (
-    <div className="absolute inset-x-4 top-28 bottom-36 z-30 flex flex-col gap-3 rounded-2xl p-3 bg-ink/80 border border-white/8" role="dialog" aria-label="Compare scenarios">
+    <div className="compare-panel absolute inset-x-4 top-28 bottom-36 z-30 flex flex-col gap-3 rounded-2xl p-3 bg-ink/80 border border-white/8" role="dialog" aria-label="Compare scenarios">
       <div className="glass rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
         <div><div className="label">Compare</div><div className="text-sm font-semibold">Scenarios · site × landing date</div></div>
         <label className="flex items-center gap-3 flex-1 min-w-[18rem]">
@@ -93,7 +93,7 @@ export function Compare() {
           <input aria-label="Launch slip in days" type="range" min={-14} max={28} step={1} value={slipDays} onChange={(e) => setSlip(+e.target.value)} className="flex-1 accent-[#ffb547]" />
           <span className={`num text-lg w-16 text-right ${slipDays === 0 ? 'text-white/60' : 'text-solar'}`}>{slipDays > 0 ? '+' : ''}{slipDays} d</span>
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button className="btn" onClick={addCurrent} disabled={scenarios.length >= 4}>+ Add current</button>
           <button className="btn" onClick={nearby}>Same date · nearby sites</button>
           <button className="btn" onClick={reset}>Reset</button>

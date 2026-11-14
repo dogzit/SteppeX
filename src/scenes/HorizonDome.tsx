@@ -108,9 +108,8 @@ export default function HorizonDome() {
   const items = useMemo(() => {
     const out: { id: string; text: string; pos: THREE.Vector3; color?: string }[] = [];
     for (let a = 0; a < 360; a += 30) out.push({ id: `az${a}`, text: a === 0 ? 'N' : a === 90 ? 'E' : a === 180 ? 'S' : a === 270 ? 'W' : `${a}°`, pos: dirOf(a, -2.2, R_SKY - 1) });
-    out.push({ id: 'sun', text: `SUN ${live.sun.el.toFixed(2)}° · az ${live.sun.az.toFixed(1)}°${live.sunUp ? '' : ' · below horizon'}`, pos: dirOf(live.sun.az, live.sun.el + 2.4, R_SKY), color: '#ffb547' });
-    for (const p of planets) out.push({ id: `p-${p.name}`, text: `${p.name} ${p.el.toFixed(0)}°`, pos: dirOf(p.az, p.el + 1.6, R_SKY), color: '#d8dee8' });
-    out.push({ id: 'earth', text: `EARTH ${live.earth.el.toFixed(2)}° · az ${live.earth.az.toFixed(1)}°${live.earthUp ? '' : ' · below horizon'}`, pos: dirOf(live.earth.az, live.earth.el + 3.2, R_SKY), color: '#5fc3ff' });
+    out.push({ id: 'sun', text: `Sun ${live.sunClear.toFixed(2)}° above terrain${live.sunUp ? '' : ' · in shadow'}`, pos: dirOf(live.sun.az, live.sun.el + 2.4, R_SKY), color: '#ffb547' });
+    out.push({ id: 'earth', text: `Earth ${(live.earth.el - live.earthHorizon).toFixed(2)}° above terrain${live.earthUp ? '' : ' · no direct radio view'}`, pos: dirOf(live.earth.az, live.earth.el + 3.2, R_SKY), color: '#5fc3ff' });
     return out;
   }, [live, planets]);
   const lookAt = (az: number, el: number) => { yaw.current = az; pitch.current = Math.max(-10, Math.min(60, el + 4)); force((v) => v + 1); };
@@ -136,14 +135,14 @@ export default function HorizonDome() {
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
         {items.map((it) => <div key={it.id} className="absolute top-0 left-0" style={{ opacity: 0 }} ref={(el) => { if (el) labelRegistry.set(it.id, { pos: it.pos, el, occlude: false }); else labelRegistry.delete(it.id); }}><div className="pin-label" style={{ color: it.color, transform: 'translate(-50%, -50%)', background: it.color ? 'rgba(5,7,11,.75)' : 'transparent', border: it.color ? undefined : 'none', fontSize: it.color ? 11 : 10, letterSpacing: '.1em' }}>{it.text}</div></div>)}
       </div>
-      <div className="absolute left-1/2 -translate-x-1/2 top-24 z-20 glass rounded-xl px-3 py-2 flex items-center gap-2 pointer-events-auto" role="group" aria-label="Look direction">
-        <span className="label">Lander view · {fmtDateTime(timeMs)}</span>
+      <div className="lander-toolbar absolute left-1/2 -translate-x-1/2 top-24 z-20 glass rounded-xl px-3 py-2 flex items-center gap-2 pointer-events-auto" role="group" aria-label="Look direction">
+        <span className="label sr-only">Lander view · {fmtDateTime(timeMs)}</span>
         <button className="btn" onClick={() => lookAt(live.sun.az, live.sun.el)}>Look at Sun</button>
         <button className="btn" onClick={() => lookAt(live.earth.az, live.earth.el)}>Look at Earth</button>
         <button className="btn" onClick={() => lookAt(0, 8)}>North</button>
-        <span className="label normal-case tracking-normal text-white/50">drag to look · wheel to zoom · dots = next lunar day's Sun/Earth paths</span>
+        <span className="label normal-case tracking-normal text-white/50 hidden lg:block">drag to look · wheel to zoom · dots = next lunar day's Sun/Earth paths</span>
       </div>
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-40 z-20 label normal-case tracking-normal text-white/60 pointer-events-none">Horizon: {hz.label}{hz.source === 'lola' ? '' : ' — terrain data not available for this point'}</div>
+      <div className="lander-source absolute left-1/2 -translate-x-1/2 bottom-40 z-20 label normal-case tracking-normal text-white/60 pointer-events-none">Horizon: {hz.label}{hz.source === 'lola' ? '' : ' — terrain data not available for this point'}</div>
     </div>
   );
 }

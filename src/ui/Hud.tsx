@@ -36,7 +36,7 @@ export function Hud({ onPalette, onMethodology, onTour, compact = false, siteDra
         <button className="btn" onClick={() => setTime(Date.now())}>Now</button>
       </div>
       <div className="glass rounded-xl px-2.5 py-2 pointer-events-auto flex items-center gap-2 shrink-0 flex-wrap">
-        {compact && (
+        {(
           <div className="flex items-center gap-2" role="group" aria-label="Panels">
             <button className={`btn ${siteDrawerOpen ? 'btn-on' : ''}`} onClick={onToggleSiteDrawer} aria-expanded={siteDrawerOpen} title="Site library">Sites</button>
             <button className={`btn ${detailsDrawerOpen ? 'btn-on' : ''}`} onClick={onToggleDetailsDrawer} aria-expanded={detailsDrawerOpen} title="Selected site details">Details</button>

@@ -54,3 +54,25 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   .app-timeline > :first-child .btn { padding: 5px 7px; }
   .app-timeline > .phone-timeline-close { grid-column: 1 / -1; min-height: 40px; }
 }
+
+/* Scene controls stay outside the terrain and leave panels dismissible. */
+.lander-toolbar { top: auto; bottom: 164px; max-width: calc(100vw - 32px); flex-wrap: wrap; justify-content: center; }
+.lander-source { bottom: 216px; max-width: min(40rem, 90vw); text-align: center; }
+.hud-grid:has(aside) .lander-toolbar, .hud-grid:has(aside) .lander-source { visibility: hidden; }
+:where(button, input, select, summary, a):focus-visible { outline: 3px solid var(--color-solar); outline-offset: 3px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.label { font-size: 11px; letter-spacing: .07em; }
+.glass [class~="text-[10px]"], .glass [class~="text-[11px]"] { font-size: 12px; }
+.glass [class*="text-white/4"], .glass [class*="text-white/5"] { color: #b8c6d8; }
+.compare-panel { font-size: 14px; }
+.compare-panel .num, .compare-panel .label { font-size: 13px; }
+@media (max-width: 1279px) { .lander-toolbar { bottom: 230px; } .lander-source { bottom: 282px; } }
+@media (max-width: 639px) {
+  .lander-toolbar { bottom: calc(80px + env(safe-area-inset-bottom)); gap: 6px; }
+  .lander-toolbar .btn { min-height: 40px; }
+  .lander-source { bottom: 132px; font-size: 11px; }
+  .compare-panel { left: 8px; right: 8px; top: 76px; bottom: 76px; overflow-y: auto; }
+  .compare-panel > :first-child { padding: 10px; gap: 10px; }
+  .compare-panel label { min-width: 0; flex-wrap: wrap; }
+  .compare-panel input[type="range"] { min-width: 100px; }
+}

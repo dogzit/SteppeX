@@ -64,14 +64,16 @@ export default function App() {
     const key = `${siteId}|${custom?.lat}|${custom?.lon}`;
     if (key !== lastPinKey.current) {
       lastPinKey.current = key;
-      if (compact) setDetailsDrawerOpen(true);
+      setDetailsDrawerOpen(true);
     }
   }, [siteId, custom, compact, setDetailsDrawerOpen]);
+
+  useEffect(() => { setSiteDrawerOpen(false); setDetailsDrawerOpen(false); }, [view, setSiteDrawerOpen, setDetailsDrawerOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((v) => !v); return; }
-      if (e.key === 'Escape') { setPalette(false); setMeth(false); useCompare.getState().setOpen(false); return; }
+      if (e.key === 'Escape') { setSiteDrawerOpen(false); setDetailsDrawerOpen(false); setPalette(false); setMeth(false); useCompare.getState().setOpen(false); return; }
       if (e.key === ' ' && (e.target as HTMLElement | null)?.closest('button')) return;
       if (typing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
       const s = useStore.getState();
@@ -100,12 +102,8 @@ export default function App() {
       <Hud onPalette={() => setPalette(true)} onMethodology={openMeth} onTour={() => setTour(0)}
         compact={compact} siteDrawerOpen={siteDrawerOpen} onToggleSiteDrawer={() => setSiteDrawerOpen(!siteDrawerOpen)}
         detailsDrawerOpen={detailsDrawerOpen} onToggleDetailsDrawer={() => setDetailsDrawerOpen(!detailsDrawerOpen)} />
-      {!compareOpen && (compact
-        ? <>
-            {siteDrawerOpen && <SitePanel compact onClose={() => setSiteDrawerOpen(false)} />}
-            {detailsDrawerOpen && <Dashboard compact explorer={mode === 'explorer'} onClose={() => setDetailsDrawerOpen(false)} />}
-          </>
-        : <><SitePanel /><Dashboard explorer={mode === 'explorer'} /></>)}
+      {!compareOpen && siteDrawerOpen && <SitePanel compact={compact} onClose={() => setSiteDrawerOpen(false)} />}
+      {!compareOpen && detailsDrawerOpen && <Dashboard compact={compact} explorer={mode === 'explorer'} onClose={() => setDetailsDrawerOpen(false)} />}
       <Timeline />
       <Compare />
       <Toasts />

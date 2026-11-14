@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { useMetrics } from '@/state/useMetrics';
 import { useStore, useActiveSite } from '@/state/store';
 import { fmtLat, fmtLon } from '@/data/sites';
@@ -16,6 +16,8 @@ const NONE_WITHIN = `none within ${NEXT_EVENT_HORIZON_DAYS} d`;
 
 export function Dashboard({ explorer = false, compact = false, onClose }: { explorer?: boolean; compact?: boolean; onClose?: () => void }) {
   const site = useActiveSite();
+  const scroll = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (scroll.current) scroll.current.scrollTop = 0; }, [site.id, site.lat, site.lon]);
   const { timeMs, setTime, windowDays, setWindowDays, sunsetDef, setSunsetDef, earthMarginDeg, setEarthMargin } = useStore();
   const { stats, live, horizon } = useMetrics();
   const [showFormula, setShowFormula] = useState(false);
@@ -59,7 +61,7 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={scroll} className="flex-1 overflow-y-auto p-4 space-y-4">
         {explorer && <ExplorerCallouts />}
         <section aria-label="Mission viability score" className="space-y-2">
           <div className="label">{windowLabel}</div>
@@ -77,7 +79,7 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
               </div>
               {score.margin === 0 && (
                 <p className="text-[11px] text-rose-300 leading-snug">
-                  Zero margin points: this site is dark at the selected time. The longest continuous darkness in this window is <b>{fmtDuration(stats.window.longestDarkMs)}</b>, The margin score uses a {MARGIN_BATTERY_HOURS} h sunlight lead-time target.
+                  Zero margin points: this site is dark at the selected time. The longest continuous darkness in this window is <b>{fmtDuration(stats.window.longestDarkMs)}</b>. The margin score uses a {MARGIN_BATTERY_HOURS} h sunlight lead-time target.
                 </p>
               )}
               {scoreRows.map(([l, v, w, c]) => {
