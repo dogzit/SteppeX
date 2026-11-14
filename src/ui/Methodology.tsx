@@ -19,6 +19,19 @@ export function Methodology({ onClose }: { onClose: () => void }) {
       <p className="mt-2">Radio visibility is line of sight only: Earth above the terrain plus your clearance angle. Ground stations, relay satellites, antenna direction and signal strength are not checked, so Earth in view does not guarantee a working link. The Artemis III entries are published candidate points inside NASA’s regions, not NASA’s final sites; other entries carry their own confidence flag and source.</p>
       <h3 className="font-semibold mt-5">How precise is a pin?</h3>
       <p>A horizon profile describes one pixel of the elevation map, so a pin is a neighbourhood rather than a landing ellipse. Along the Whipple crater rim, moving 720 m changes the yearly share of sunlight from 44% to 77%. Results for the north pole and for custom pins use coarser maps and are labelled accordingly.</p>
+      <h3 className="font-semibold mt-5">How we check this</h3>
+      <p>Two independent checks, both repeatable from the project's source.</p>
+      <p className="mt-2"><b>Positions.</b> Sun and Earth direction from the lunar surface, compared with NASA’s JPL Horizons at 1,208 epochs and four sites including 89.9°S. Largest difference: 0.009° for the Sun, 0.004° for Earth, against a 0.1° tolerance. The check runs offline in the test suite with <span className="num">npm test</span>.</p>
+      <p className="mt-2"><b>Terrain illumination.</b> Compared with the Gläser et al. 2018 south-pole study, which used a finer 20 m/pixel map over 20 years. Average share of sunlight at their three south-pole points:</p>
+      <table className="mt-2 w-full text-sm border-collapse">
+        <thead><tr><th scope="col" className="text-left py-1 border-b border-white/15">Site</th><th scope="col" className="text-right py-1 border-b border-white/15">Ours</th><th scope="col" className="text-right py-1 border-b border-white/15">Published</th></tr></thead>
+        <tbody>
+          <tr><td className="py-1">Shackleton rim S</td><td className="num text-right">83.4%</td><td className="num text-right">81%</td></tr>
+          <tr><td className="py-1">Connecting Ridge C1</td><td className="num text-right">76.8%</td><td className="num text-right">76%</td></tr>
+          <tr><td className="py-1">Connecting Ridge C2</td><td className="num text-right">66.2%</td><td className="num text-right">75.6%</td></tr>
+        </tbody>
+      </table>
+      <p className="mt-2">That is agreement within 1 to 9 percentage points. At their north-pole point the gap is much larger, because our coarser map there misses the crater rim crest: the best pixel within 720 m gives 77%, the point itself 44%. Rerun these comparisons with <span className="num">npm run validate</span> and <span className="num">npm run validate:horizon</span>; full tables are in VALIDATION.md.</p>
       <Glossary />
       <details className="mt-5 border-t border-white/10 pt-3"><summary className="cursor-pointer font-semibold">Technical details and data credits</summary>
         <p className="mt-2">Positions: astronomy-engine and the IAU/WGCCRE 2009 Moon rotation model, including libration and Earth parallax. Checked at 1,208 epochs against JPL Horizons: maximum differences of 0.009° for the Sun and 0.004° for Earth.</p>

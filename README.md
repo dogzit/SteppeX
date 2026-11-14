@@ -66,11 +66,47 @@ Site-independent geometry is computed once per time step; a site only adds three
 
 Source layout: `src/astro` (pure TypeScript engine, no DOM), `src/scenes` (react-three-fiber globe and dome, GLSL in `shaders/`), `src/ui` (panels), `src/state` (Zustand + URL), `src/workers` (custom-pin horizons), `scripts` (data pipeline), `tests` (Vitest), `e2e` (Playwright).
 
-## Accuracy
+## Validation
 
-- Sun and Earth az/el vs **JPL Horizons** (Moon-surface observer, 1 208 epochs, 4 sites incl. 89.9°S): max 0.009° / 0.004°. See [VALIDATION.md](VALIDATION.md).
-- Terrain illumination at the Gläser et al. (2018) south-pole reference points reproduced within 1–9 percentage points; the north-pole gap is explained there (crest resolution).
-- No refraction, no twilight: the Moon has no atmosphere. Everything else that is not modelled is listed in the in-app Methodology panel and in [LIMITATIONS.md](LIMITATIONS.md).
+Two independent checks, both reproducible from this repository.
+
+**Positions against NASA JPL Horizons.** Topocentric azimuth and elevation of the Sun and Earth
+from a lunar surface observer, across 1 208 epochs at four sites including 89.9°S:
+
+| Body | Max separation | Mean | Tolerance |
+|---|---|---|---|
+| Sun | 0.0090° | 0.0050° | 0.1° |
+| Earth | 0.0036° | 0.0016° | 0.1° |
+
+```bash
+npm test                            # tests/horizons.test.ts enforces this offline against committed fixtures
+npx tsx scripts/fetch-horizons.ts   # refetch the Horizons fixtures (needs network)
+npm run validate                    # rewrite the Horizons section of VALIDATION.md
+```
+
+**Terrain illumination against Gläser et al. (2018).** Our hourly 2024–2025 sweep with a LOLA-derived
+horizon at 2 m eye height, against their 20-year study at 20 m/px. The three south-pole sites agree
+within 1 to 9 percentage points:
+
+| Site | Average illumination, ours | published | Difference |
+|---|---|---|---|
+| Shackleton rim S | 83.4 % | 81 % | +2.4 |
+| Connecting Ridge C1 | 76.8 % | 76 % | +0.8 |
+| Connecting Ridge C2 | 66.2 % | 75.6 % | −9.4 |
+
+```bash
+npm run validate:horizon               # rewrite the Gläser comparison in VALIDATION.md
+node --import tsx scripts/dev/check-whipple.ts   # the 720 m pixel-sensitivity probe
+```
+
+The fourth site in the published table, Whipple rim at the north pole, differs by far more. That is a
+resolution effect, not a disagreement: our 240 m/px north tile misses the rim crest, and the best
+pixel within 720 m of the published point gives 77.0 % against our 43.9 % at the point itself. It is
+the clearest evidence for the caveat that a horizon profile describes one pixel. Full tables,
+method and residual analysis are in [VALIDATION.md](VALIDATION.md).
+
+- No refraction and no twilight: the Moon has no atmosphere. Everything else that is not modelled is
+  listed in the in-app Methodology panel and in [LIMITATIONS.md](LIMITATIONS.md).
 
 ## Credits and data
 
