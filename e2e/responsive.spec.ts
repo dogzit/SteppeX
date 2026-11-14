@@ -1,31 +1,32 @@
 import { test, expect } from '@playwright/test';
+test.beforeEach(async ({ page }) => { await page.addInitScript(() => localStorage.setItem('ln-welcome-dismissed', '1')); });
 
 const T = '2026-11-20T12:00Z';
 const url = (extra = '') => `/?site=artemis-cr&t=${T}&nointro${extra}`;
 
-test.describe('880px: drawers, globe usability, More views menu', () => {
+test.describe('880px: drawers, globe usability, View menu', () => {
   test.use({ viewport: { width: 880, height: 900 } });
 
   test('globe starts exposed; place a pin, inspect it, dismiss, place another — time never changes', async ({ page }) => {
     await page.goto(url());
     await expect(page.getByRole('heading', { name: 'LUNAR NAVIGATOR' })).toBeVisible();
     // Globe exposed by default: no drawers mounted yet.
-    await expect(page.locator('aside[aria-label="Site library"]')).toHaveCount(0);
-    await expect(page.locator('aside[aria-label="Power and communications dashboard"]')).toHaveCount(0);
+    await expect(page.locator('aside[aria-label="Choose a site"]')).toHaveCount(0);
+    await expect(page.locator('aside[aria-label="Site details"]')).toHaveCount(0);
     await page.screenshot({ path: 'docs/screens/r-880-initial.png' });
     const missionTime = () => page.locator('header div.num.text-lg').innerText();
     const t0 = await missionTime();
 
     // Open the Sites drawer, place a pin via the custom lat/lon form.
     await page.getByRole('button', { name: 'Sites' }).click();
-    const siteDrawer = page.locator('aside[aria-label="Site library"]');
+    const siteDrawer = page.locator('aside[aria-label="Choose a site"]');
     await expect(siteDrawer).toBeVisible();
     await siteDrawer.getByLabel('Custom latitude').fill('-80');
     await siteDrawer.getByLabel('Custom longitude').fill('45');
-    await siteDrawer.getByRole('button', { name: 'Pin' }).click();
+    await siteDrawer.getByRole('button', { name: 'Add pin' }).click();
 
     // Placing it auto-opens details and closes the site drawer (mutually exclusive at this width).
-    const details = page.locator('aside[aria-label="Power and communications dashboard"]');
+    const details = page.locator('aside[aria-label="Site details"]');
     await expect(details).toBeVisible();
     await expect(siteDrawer).toHaveCount(0);
     await expect(details.getByText('Custom site')).toBeVisible();
@@ -44,33 +45,33 @@ test.describe('880px: drawers, globe usability, More views menu', () => {
     await page.screenshot({ path: 'docs/screens/r-880-pin-flow.png' });
   });
 
-  test('"More views" opens every view; opening one drawer closes the other', async ({ page }) => {
+  test('"View" opens every view; opening one drawer closes the other', async ({ page }) => {
     await page.goto(url());
-    await expect(page.getByRole('button', { name: 'More views: Globe' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'View: Globe' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'More views: Globe' }).click();
+    await page.getByRole('button', { name: 'View: Globe' }).click();
     await page.getByRole('menuitem', { name: 'South pole' }).click();
-    await expect(page.getByRole('button', { name: 'More views: South pole' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'View: South pole' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'More views: South pole' }).click();
+    await page.getByRole('button', { name: 'View: South pole' }).click();
     await page.getByRole('menuitem', { name: 'Lander view' }).click();
-    await expect(page.getByRole('button', { name: 'More views: Lander view' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'View: Lander view' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'More views: Lander view' }).click();
+    await page.getByRole('button', { name: 'View: Lander view' }).click();
     await page.getByRole('menuitem', { name: 'Globe' }).click();
-    await expect(page.getByRole('button', { name: 'More views: Globe' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'View: Globe' })).toBeVisible();
 
     // Mutual exclusivity: opening Details while Sites is open closes Sites.
     await page.getByRole('button', { name: 'Sites' }).click();
-    await expect(page.locator('aside[aria-label="Site library"]')).toBeVisible();
+    await expect(page.locator('aside[aria-label="Choose a site"]')).toBeVisible();
     await page.getByRole('button', { name: 'Details' }).click();
-    await expect(page.locator('aside[aria-label="Site library"]')).toHaveCount(0);
-    await expect(page.locator('aside[aria-label="Power and communications dashboard"]')).toBeVisible();
+    await expect(page.locator('aside[aria-label="Choose a site"]')).toHaveCount(0);
+    await expect(page.locator('aside[aria-label="Site details"]')).toBeVisible();
   });
 
   test('view menu supports sequential keyboard navigation and Space selection without starting playback', async ({ page }) => {
     await page.goto(url());
-    const trigger = page.getByRole('button', { name: 'More views: Globe' });
+    const trigger = page.getByRole('button', { name: 'View: Globe' });
     await trigger.focus();
     await page.keyboard.press('Space');
     await expect(page.getByRole('menuitem', { name: 'Globe', exact: true })).toBeFocused();
@@ -80,12 +81,12 @@ test.describe('880px: drawers, globe usability, More views menu', () => {
     await expect(page.getByRole('menuitem', { name: 'Lander view' })).toBeFocused();
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('Space');
-    await expect(page.getByRole('button', { name: 'More views: South pole' })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'View: South pole' })).toBeFocused();
     await expect(page.getByRole('button', { name: 'Play', exact: true })).toHaveAttribute('aria-pressed', 'false');
     await page.keyboard.press('Enter');
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'More views: South pole' })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'View: South pole' })).toBeFocused();
   });
 
   test('timeline heading text never overlaps the bars, even when it wraps', async ({ page }) => {
@@ -106,19 +107,24 @@ test.describe('mission window / timeline labels follow their own inputs', () => 
 
   test('changing the mission window duration updates its derived heading and date range', async ({ page }) => {
     await page.goto(url());
-    const heading = page.locator('section[aria-label="Mission viability score"] .label').first();
-    await expect(heading).toHaveText('Mission window · 14 days · 2026-11-20 → 2026-12-04');
-    await page.getByLabel('Window · days').fill('7');
+    await page.getByRole('button', { name: 'Details', exact: true }).click();
+    await page.getByRole('button', { name: 'Expert', exact: true }).click();
+    await page.getByText('Advanced settings', { exact: true }).first().click();
+    const heading = page.locator('section[aria-label="Site score"] .label').first();
+    await expect(heading).toHaveText('Date range · 14 days · 2026-11-20 → 2026-12-04');
+    await page.getByLabel('Date range · days').fill('7');
     await page.waitForTimeout(400);
-    await expect(heading).toHaveText('Mission window · 7 days · 2026-11-20 → 2026-11-27');
+    await expect(heading).toHaveText('Date range · 7 days · 2026-11-20 → 2026-11-27');
   });
 
   test('scrubbing across a sunset flips the live badge, independently of the longest-darkness figure', async ({ page }) => {
     await page.goto(url());
     // Wait for the real LOLA terrain horizon to load (it briefly falls back to a flat-sphere horizon
     // first), so the sunset figure we read next is the settled, terrain-aware one, not a transient.
-    await expect(page.getByText(/Horizon: LOLA DEM/)).toBeVisible();
-    const badge = page.locator('section[aria-label="Mission viability score"] .inline-flex');
+    await page.getByRole('button', { name: 'Details', exact: true }).click();
+    await page.getByRole('button', { name: 'Expert', exact: true }).click();
+    await expect(page.getByText(/Terrain checked using NASA/)).toBeVisible();
+    const badge = page.locator('section[aria-label="Site score"] .inline-flex');
     await expect(badge).toContainText('Sunlit now');
     const before = await badge.innerText(); // "☀ Sunlit now · sunset in 5d 10h 41m"
     const m = before.match(/sunset in (\d+)d (\d+)h (\d+)m/);
@@ -135,8 +141,8 @@ test.describe('mission window / timeline labels follow their own inputs', () => 
     // different questions answered by different code — confirm they report different numbers, not one
     // approximating the other.
     const toSunrise = (await badge.innerText()).match(/sunrise in ([\w\s]+)$/)![1];
-    const tile = await page.getByText('Longest continuous sun', { exact: true }).locator('xpath=..').innerText();
-    const longestDark = tile.match(/longest dark ([\w\s]+)$/)?.[1] ?? '';
+    const tile = await page.getByText('Longest stretch of sunlight', { exact: true }).locator('xpath=..').innerText();
+    const longestDark = tile.match(/longest night ([\w\s]+)$/)?.[1] ?? '';
     expect(longestDark).not.toBe('');
     expect(toSunrise.trim()).not.toBe(longestDark.trim());
   });
@@ -145,27 +151,29 @@ test.describe('mission window / timeline labels follow their own inputs', () => 
 test.describe('share URL reopen', () => {
   test('a URL with a custom pin and a specific time reopens the same site and time', async ({ page, context }) => {
     await page.goto(url('&lat=-72.5000&lon=10.0000'));
+    await page.getByRole('button', { name: 'Details', exact: true }).click();
     await expect(page.getByText('Custom site')).toBeVisible();
     const missionTime = await page.locator('header div.num.text-lg').innerText();
     const shareUrl = page.url();
 
     const fresh = await context.newPage();
     await fresh.goto(shareUrl);
+    await fresh.getByRole('button', { name: 'Details', exact: true }).click();
     await expect(fresh.getByText('Custom site')).toBeVisible();
     await expect(fresh.locator('header div.num.text-lg')).toHaveText(missionTime);
-    await expect(fresh.locator('aside[aria-label="Power and communications dashboard"]')).toContainText('72.500°S');
+    await expect(fresh.locator('aside[aria-label="Site details"]')).toContainText('72.500°S');
     await fresh.close();
   });
 });
 
 test.describe('1440 and 390 sanity', () => {
-  test('1440px keeps the original always-visible desktop layout (no drawer toggles)', async ({ page }) => {
+  test('1440px keeps desktop view controls and dismissible panels', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(url());
-    await expect(page.locator('aside[aria-label="Site library"]')).toBeVisible();
-    await expect(page.locator('aside[aria-label="Power and communications dashboard"]')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sites' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /More views/ })).toHaveCount(0);
+    await expect(page.locator('aside')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Sites', exact: true }).click();
+    await expect(page.locator('aside[aria-label="Choose a site"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: /View/ })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Globe', exact: true })).toBeVisible();
     await page.screenshot({ path: 'docs/screens/r-1440-initial.png' });
   });
@@ -177,8 +185,8 @@ test.describe('1440 and 390 sanity', () => {
     await page.goto(url());
     await page.screenshot({ path: 'docs/screens/r-390-initial.png' });
     await page.getByRole('button', { name: 'Sites' }).click();
-    await expect(page.locator('aside[aria-label="Site library"]')).toBeVisible();
-    for (const target of ['header', 'footer', 'aside[aria-label="Site library"]']) {
+    await expect(page.locator('aside[aria-label="Choose a site"]')).toBeVisible();
+    for (const target of ['header', 'footer', 'aside[aria-label="Choose a site"]']) {
       const box = await page.locator(target).boundingBox();
       expect(box).not.toBeNull();
       expect(box!.x).toBeGreaterThanOrEqual(0);
@@ -205,15 +213,15 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }
     expect(footer!.y - (header!.y + header!.height)).toBeGreaterThan(viewport.height * 0.75);
     await expect(page.getByLabel('Set date and time (UTC)')).toBeHidden();
     await expect(page.locator('footer svg')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Open controls' }).click();
+    await page.getByRole('button', { name: 'Open menu' }).click();
     await expect(page.getByLabel('Set date and time (UTC)')).toBeVisible();
-    await page.getByRole('button', { name: 'Close controls' }).click();
+    await page.getByRole('button', { name: 'Close menu' }).click();
     await page.getByRole('button', { name: 'Timeline ↑' }).click();
     await expect(page.locator('footer svg')).toBeVisible();
     await page.getByRole('button', { name: 'Close timeline' }).click();
     await expect(page.locator('footer svg')).toHaveCount(0);
     await page.getByRole('button', { name: 'Details', exact: true }).click();
-    const sheet = page.getByRole('complementary', { name: 'Power and communications dashboard' });
+    const sheet = page.getByRole('complementary', { name: 'Site details' });
     await expect(sheet).toBeVisible();
     const box = await sheet.boundingBox();
     expect(box!.height).toBeLessThanOrEqual(viewport.height * 0.56);

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+test.beforeEach(async ({ page }) => { await page.addInitScript(() => localStorage.setItem('ln-welcome-dismissed', '1')); });
 
 const SITE = 'artemis-cr'; // Artemis III · Connecting Ridge candidate — a real south-pole site
 const T = '2026-11-20T12:00Z';
@@ -6,10 +7,10 @@ const T = '2026-11-20T12:00Z';
 async function openPanel(page: Page) {
   await page.goto(`/?site=${SITE}&t=${T}&nointro`);
   await expect(page.getByRole('heading', { name: 'LUNAR NAVIGATOR' })).toBeVisible();
-  if ((page.viewportSize()?.width ?? 1440) < 1280) {
+  {
     await page.getByRole('button', { name: 'Details', exact: true }).click();
   }
-  await page.getByRole('button', { name: 'Find a window' }).click();
+  await page.getByRole('button', { name: 'Find a sunny time' }).click();
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -19,7 +20,7 @@ test('default flow: open panel, see 3 opportunities, click one, highlight + land
   await expect(page.getByLabel('Required continuous sunlight, hours')).toHaveValue('48');
   await expect(page.getByLabel('Required continuous Earth visibility, hours')).toHaveValue('2');
 
-  const rows = page.locator('section[aria-label="Find a window"] li');
+  const rows = page.locator('section[aria-label="Find a sunny time"] li');
   await expect(rows).toHaveCount(3);
   await page.screenshot({ path: 'docs/screens/11-find-window.png' });
 
@@ -28,7 +29,7 @@ test('default flow: open panel, see 3 opportunities, click one, highlight + land
   // view opens at its start.
   const second = rows.nth(1);
   const selectButton = second.getByRole('button').first();
-  const startText = (await selectButton.innerText()).split(' → ')[0]; // e.g. "2026-12-13 09:21Z"
+  const startText = (await selectButton.locator('.num').innerText()).split(' → ')[0]; // e.g. "2026-12-13 09:21Z"
   const startPrefix = startText.replace('Z', ''); // matches the Hud's mission-time readout format
   await selectButton.click();
   await expect(page.getByRole('button', { name: 'Lander view', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -44,15 +45,15 @@ test('default flow: open panel, see 3 opportunities, click one, highlight + land
 test('copy link reopens the same site, search settings and selected window in a fresh page', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await openPanel(page);
-  const rows = page.locator('section[aria-label="Find a window"] li');
+  const rows = page.locator('section[aria-label="Find a sunny time"] li');
   await expect(rows).toHaveCount(3);
   const target = rows.nth(1);
   // Capture the exact mission window being shared before the click moves the mission clock to its start
   // (selecting a result re-anchors the search to its own time, same as clicking a DTE window elsewhere in
   // the app — the *highlighted* window must still reopen exactly, independent of how the live list reorders).
-  const originalRange = (await target.getByRole('button').first().innerText()).trim(); // "2026-12-13 09:21Z → 2026-12-15 09:21Z UTC"
+  const originalRange = (await target.getByRole('button').first().locator('.num').innerText()).trim(); // "2026-12-13 09:21Z → 2026-12-15 09:21Z UTC"
   const [originalStart, originalEnd] = originalRange.replace(' UTC', '').split(' → ');
-  await target.getByRole('button', { name: 'Copy link' }).click();
+  await target.getByRole('button', { name: 'Copy this time' }).click();
   await page.waitForTimeout(300);
   const link = await page.evaluate(() => navigator.clipboard.readText());
   expect(link).toContain('site=artemis-cr');
@@ -65,10 +66,11 @@ test('copy link reopens the same site, search settings and selected window in a 
   await fresh.goto(link + '&nointro'); // skip the boot animation; nointro is a test convenience, not part of the copied link
   await expect(fresh.getByRole('heading', { name: 'LUNAR NAVIGATOR' })).toBeVisible();
   await expect(fresh.getByRole('button', { name: 'Lander view', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  // A link carrying a selected window auto-opens the panel — no extra click needed to see the result.
+  await fresh.getByRole('button', { name: 'Details', exact: true }).click();
+  // The shared selection opens the date finder inside Details.
   await expect(fresh.getByLabel('Required continuous sunlight, hours')).toHaveValue('48');
   await expect(fresh.getByLabel('Required continuous Earth visibility, hours')).toHaveValue('2');
-  const freshRows = fresh.locator('section[aria-label="Find a window"] li');
+  const freshRows = fresh.locator('section[aria-label="Find a sunny time"] li');
   await expect(freshRows).toHaveCount(3);
   // The authoritative check: the *exact* shared window reopens, shown as the timeline highlight —
   // independent of where it now falls in the live (re-anchored) opportunity list.
@@ -84,13 +86,13 @@ test('empty search explains which requirement failed with measured values', asyn
   await openPanel(page);
   await page.getByLabel('Required continuous sunlight, hours').fill('100000');
   await page.waitForTimeout(600);
-  await expect(page.getByText(/Longest continuous sunlight in the next 90 days was/)).toBeVisible();
+  await expect(page.getByText(/The longest stretch of sunlight in the next 90 days was/)).toBeVisible();
   await page.screenshot({ path: 'docs/screens/14-find-window-empty.png' });
 });
 
 test('add to calendar downloads a UTC .ics event for the selected window', async ({ page }) => {
   await openPanel(page);
-  const rows = page.locator('section[aria-label="Find a window"] li');
+  const rows = page.locator('section[aria-label="Find a sunny time"] li');
   const [download] = await Promise.all([page.waitForEvent('download'), rows.first().getByRole('button', { name: 'Add to calendar' }).click()]);
   expect(download.suggestedFilename()).toMatch(/\.ics$/);
   const path = await download.path();
@@ -110,7 +112,7 @@ test('mobile layout: the finder is reachable and usable at a phone viewport', as
   await expect(page.getByLabel('Required continuous Earth visibility, hours')).toBeVisible();
   await page.getByLabel('Required continuous sunlight, hours').fill('36');
   await page.waitForTimeout(600);
-  const rows = page.locator('section[aria-label="Find a window"] li');
+  const rows = page.locator('section[aria-label="Find a sunny time"] li');
   await expect(rows.first()).toBeVisible();
   await page.screenshot({ path: 'docs/screens/15-find-window-mobile.png' });
   expect(errors).toEqual([]);

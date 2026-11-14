@@ -76,3 +76,20 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   .compare-panel label { min-width: 0; flex-wrap: wrap; }
   .compare-panel input[type="range"] { min-width: 100px; }
 }
+/* Navigation hierarchy: one row for identity/time, one for actions. */
+@media (min-width: 640px) {
+  .app-hud { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+  .app-hud > :nth-child(2) { justify-self: end; }
+  .app-hud > :nth-child(3) { grid-column: 1 / -1; }
+  .hud-grid aside { top: 164px; }
+}
+.welcome-hint { top: 164px; left: 50%; transform: translateX(-50%); width: min(28rem, calc(100vw - 32px)); }
+.hud-grid:has([role="dialog"]) .welcome-hint { display: none; }
+@media (max-width: 639px) {
+  .welcome-hint { top: 82px; font-size: 12px; }
+  .phone-toolbar .btn { padding: 7px 8px; }
+  .phone-toolbar h1 { font-size: 11px; }
+  .phone-toolbar { gap: 4px; }
+  .app-hud[data-tools-open="true"] { max-height: 70dvh; overflow-y: auto; }
+  .app-hud[data-tools-open="true"] .phone-toolbar { position: sticky; top: 0; z-index: 1; }
+}

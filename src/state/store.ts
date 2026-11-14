@@ -44,7 +44,7 @@ export const useStore = create<State>((set) => ({
   windowDays: url.windowDays ?? 14, setWindowDays: (windowDays) => set({ windowDays }),
   sunsetDef: url.sunsetDef ?? 'center', setSunsetDef: (sunsetDef) => set({ sunsetDef }),
   earthMarginDeg: url.earthMarginDeg ?? 5, setEarthMargin: (earthMarginDeg) => set({ earthMarginDeg }),
-  mode: url.mode ?? 'planner', setMode: (mode) => set({ mode }),
+  mode: url.mode ?? 'explorer', setMode: (mode) => set({ mode }),
   showGrid: false, toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
   hoverSiteId: null, setHover: (hoverSiteId) => set({ hoverSiteId }),
   flyToken: 0, zoomNear: false, ephemReady: false, horizonsReady: false, introDone: false, cinematic: false,

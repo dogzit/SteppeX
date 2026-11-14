@@ -11,7 +11,7 @@ export function Toasts() {
   useEffect(() => {
     const a = last.current, b = timeMs; last.current = b;
     if (Math.abs(b - a) > 3 * 86400_000) return; // jumps, not playback
-    const ev: [string, number | null][] = [['☀ Sunset', stats.next.sunset], ['☀ Sunrise', stats.next.sunrise], ['⊕ Earthset', stats.next.earthset], ['⊕ Earthrise', stats.next.earthrise]];
+    const ev: [string, number | null][] = [['☀ Sunset', stats.next.sunset], ['☀ Sunrise', stats.next.sunrise], ['⊕ Earth goes out of view', stats.next.earthset], ['⊕ Earth comes into view', stats.next.earthrise]];
     for (const [name, t] of ev) if (t !== null && ((a < t && t <= b) || (b < t && t <= a))) { const id = ++seq.current; setLog((l) => [...l.slice(-3), { id, text: `${name} · ${site.name.split(' · ')[0]} · ${fmtDateTime(t)}` }]); setTimeout(() => setLog((l) => l.filter((x) => x.id !== id)), 6000); }
   }, [timeMs, stats, site.name]);
   return <div className="absolute left-1/2 -translate-x-1/2 bottom-40 z-30 space-y-1 pointer-events-none" aria-live="polite">{log.map((l) => <div key={l.id} className="glass rounded-md px-3 py-1.5 text-xs num">{l.text}</div>)}</div>;

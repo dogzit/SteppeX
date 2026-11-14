@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import { PLANETS, planetAzEl, planetClearance, nextCrossings, planetFromMoon, moonState, angleBetween, skyAt, horizonAt, type HorizonProfile, type Crossings } from '@/astro';
 import { useStore, useActiveSite } from '@/state/store';
 import { useMetrics } from '@/state/useMetrics';
@@ -26,13 +26,13 @@ export function SkyTable() {
     const phase = (1 - Math.cos(angleBetween(st.sun, st.earth) * Math.PI / 180)) / 2;
     const later = moonState(new Date(timeMs + HOUR)); const waxing = (1 - Math.cos(angleBetween(later.sun, later.earth) * Math.PI / 180)) / 2 > phase;
     out.push({ name: 'Earth', color: '#5fc3ff', el: live.earth.el - live.earthHorizon, az: live.earth.az, up: live.earthUp, cross: { upNow: live.earthUp, rise: stats.next.earthrise, set: stats.next.earthset, transit: null, maxEl: 0, searchedUntil: 0 },
-      comment: `${live.earthUp ? 'Visible · DTE link possible' : 'Below horizon · no direct-to-Earth link'} · phase ${(phase * 100).toFixed(0)}% ${waxing ? 'waxing' : 'waning'}` });
+      comment: `${live.earthUp ? 'Visible · direct radio path possible' : 'Below horizon · no direct-to-Earth link'} · sunlit face ${(phase * 100).toFixed(0)}%, ${waxing ? 'growing' : 'shrinking'}` });
     PLANETS.forEach((b, i) => {
       const a = planetAzEl(s, b, d), cr = planetEvents[i], up = a.el - horizonAt(horizon, a.az) > 0;
       const elong = angleBetween(planetFromMoon(b, d).vec, st.sun);
       let comment: string;
-      if (up) comment = elong < 6 ? `Lost in the Sun's glare (${elong.toFixed(0)}° from the Sun)` : live.sunUp ? `Visible in daylight — no atmosphere, no blue sky${a.mag > 5 ? ' · needs binoculars' : ''}` : a.mag < 2 ? 'Perfect visibility' : a.mag < 5 ? 'Average visibility' : 'Difficult to see · binoculars';
-      else comment = cr.rise ? `Below horizon · rises in ${fmtDuration(cr.rise - timeMs)}` : 'Does not rise in the next 60 d';
+      if (up) comment = elong < 6 ? `Lost in the Sun's glare (${elong.toFixed(0)}° from the Sun)` : live.sunUp ? `Visible in daylight — no atmosphere, no blue sky${a.mag > 5 ? ' · needs binoculars' : ''}` : a.mag < 2 ? 'Bright enough to see easily' : a.mag < 5 ? 'Fainter; may be harder to see' : 'Difficult to see · binoculars';
+      else comment = cr.rise ? `Below horizon · rises in ${fmtDuration(cr.rise - timeMs)}` : 'Does not rise in the next 60 days';
       out.push({ name: b, color: '#d8dee8', el: a.el - horizonAt(horizon, a.az), az: a.az, mag: a.mag, up, cross: cr, comment, elong });
     });
     return out;
@@ -42,24 +42,24 @@ export function SkyTable() {
     <section aria-label="Sky from the site">
       <div className="label mb-1">Sky from the site · now and next 60 d</div>
       <table className="w-full text-[11px] num border-collapse">
-        <thead><tr className="label text-left"><th className="font-normal pb-1">Body</th><th className="font-normal pb-1">Above terrain</th><th className="font-normal pb-1">Dir</th><th className="font-normal pb-1">Rise</th><th className="font-normal pb-1">Set</th><th className="font-normal pb-1">Mag</th></tr></thead>
+        <thead><tr className="label text-left"><th className="font-normal pb-1">Object</th><th className="font-normal pb-1">Above terrain</th><th className="font-normal pb-1">Direction</th><th className="font-normal pb-1">Rise</th><th className="font-normal pb-1">Set</th><th className="font-normal pb-1">Brightness</th></tr></thead>
         <tbody>
           {rows.map((r) => (
-            <>
+            <Fragment key={r.name}>
               <tr key={r.name} className="border-t border-white/8">
                 <td className="py-1 pr-2 font-display" style={{ color: r.up ? r.color : 'rgba(255,255,255,.45)' }}>{r.name}</td>
                 <td className={`py-1 pr-2 ${r.up ? '' : 'text-white/40'}`}>{r.el.toFixed(1)}°</td>
-                <td className="py-1 pr-2 text-white/70" title={`azimuth ${r.az.toFixed(1)}°`}>{compass(r.az)} <span className="text-white/35">{r.az.toFixed(0)}°</span></td>
+                <td className="py-1 pr-2 text-white/70" title={`Direction: ${r.az.toFixed(1)} degrees clockwise from north`}>{compass(r.az)} <span className="text-white/35">{r.az.toFixed(0)}°</span></td>
                 <td className="py-1 pr-2 text-white/70">{r.cross.rise ? fmtDateTime(r.cross.rise).slice(5, 16) : '—'}</td>
                 <td className="py-1 pr-2 text-white/70">{r.cross.set ? fmtDateTime(r.cross.set).slice(5, 16) : '—'}</td>
                 <td className="py-1 text-white/50">{r.mag !== undefined ? r.mag.toFixed(1) : ''}</td>
               </tr>
               <tr key={r.name + '-c'}><td colSpan={6} className="pb-1 text-[10px] text-white/50 font-display">{r.comment}</td></tr>
-            </>
+            </Fragment>
           ))}
         </tbody>
       </table>
-      <p className="label normal-case tracking-normal text-white/40 mt-1">Heights are measured above nearby terrain, not flat ground. Earth radio visibility also uses your clearance setting. Rise/set use the terrain horizon. Times UTC. No atmosphere: no twilight, no refraction, planets visible by day away from the Sun.</p>
+      <p className="label normal-case tracking-normal text-white/40 mt-1">Heights are measured above nearby terrain, not flat ground. Earth radio visibility also uses your clearance setting. Rise/set use the terrain horizon. Times UTC. Lower brightness numbers mean brighter objects. A dash means no event was found in the search range.</p>
     </section>
   );
 }

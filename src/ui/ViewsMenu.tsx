@@ -37,11 +37,11 @@ export function ViewsMenu({ view, setView }: { view: ViewMode; setView: (v: View
 
   return (
     <div className="relative" ref={root}>
-      <button ref={trigger} className="btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} title="More views">
-        More views: {current.label} ▾
+      <button ref={trigger} className="btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} title="View">
+        View: {current.label} ▾
       </button>
       {open && (
-        <div role="menu" aria-label="More views" className="absolute left-0 top-full mt-1 glass rounded-lg overflow-hidden min-w-[10rem] z-30 py-1" onKeyDown={onMenuKeyDown}>
+        <div role="menu" aria-label="View" className="absolute left-0 top-full mt-1 glass rounded-lg overflow-hidden min-w-[10rem] z-30 py-1" onKeyDown={onMenuKeyDown}>
           {ITEMS.map((i) => (
             <button key={i.v} role="menuitem" aria-current={i.v === view} title={`${i.label} (${i.key})`}
               className={`w-full text-left px-3 py-2 text-xs transition-colors ${i.v === view ? 'bg-solar/15 text-solar' : 'text-white/80 hover:bg-white/8'}`}

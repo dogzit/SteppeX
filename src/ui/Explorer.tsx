@@ -4,7 +4,7 @@ import { fmtDuration } from './format';
 
 /** Plain-language "why is this hard?" callouts driven by the live numbers. Shown in Explorer mode. */
 export function ExplorerCallouts() {
-  const site = useActiveSite(); const { stats, live, horizon } = useMetrics(); const windowDays = useStore((s) => s.windowDays);
+  const site = useActiveSite(); const { stats, live } = useMetrics(); const windowDays = useStore((s) => s.windowDays);
   const polar = Math.abs(site.lat) > 80;
   const maxSun = polar ? '≈1.5°' : `${(90 - Math.abs(site.lat) + 1.5).toFixed(0)}°`;
   const items: { icon: string; title: string; body: string }[] = [];
@@ -12,9 +12,9 @@ export function ExplorerCallouts() {
     ? { icon: '☀', title: 'The Sun never climbs here', body: `At ${Math.abs(site.lat).toFixed(1)}°${site.lat < 0 ? 'S' : 'N'} the Sun stays within about ${maxSun} of the horizon and circles it once per lunar day (29.5 Earth days). Any ridge in its path turns day into night: right now the terrain in the Sun's direction stands ${live.sunHorizon.toFixed(1)}° high and the Sun is at ${live.sun.el.toFixed(1)}°.` }
     : { icon: '☀', title: 'Lunar days are much longer than Earth days', body: `A full day–night cycle lasts about 29.5 Earth days. Away from the poles, daylight often lasts about 14.7 Earth days. That is different from the time left right now: ${live.sunUp && stats.next.sunset ? `${fmtDuration(stats.next.sunset - useStore.getState().timeMs)} until sunset` : 'this location is currently dark'}. The longest sunlit stretch inside your selected date range is ${fmtDuration(stats.window.longestSunlitMs)}; it may be cut short by the end of that range.` });
   items.push(live.earthUp
-    ? { icon: '⊕', title: 'Earth is in view; a direct radio link may be possible', body: `Earth sits ${live.earth.el.toFixed(1)}° above the horizon. From the Moon it hangs almost still, but it drifts ±7° over the month (libration). Over the next ${windowDays} days it is visible ${(100 * stats.window.earthFrac).toFixed(0)}% of the time.` }
-    : { icon: '⊕', title: 'No Earth, no direct radio link', body: `Earth is ${Math.abs(live.earth.el).toFixed(1)}° below the horizon, so this site cannot talk to Earth directly right now${stats.next.earthrise ? `; it rises in ${fmtDuration(stats.next.earthrise - useStore.getState().timeMs)}` : ''}. Near the poles the Earth wobbles in and out of view every month; on the far side it never appears.` });
-  items.push({ icon: '◐', title: 'No air changes everything', body: `There is no atmosphere: no twilight, no scattered light, no refraction lifting the Sun. Shadows are pitch black and a ${(2 * live.sun.radiusDeg).toFixed(2)}° solar disc sets in about an hour at the pole. The horizon used here comes from LRO laser altimetry (${horizon.label.split(';')[0]}).` });
+    ? { icon: '⊕', title: 'Earth is in view; a direct radio link may be possible', body: `Earth is ${(live.earth.el - live.earthHorizon).toFixed(1)}° above nearby terrain. From the Moon it hangs almost still, but it slowly shifts during the month. Over the next ${windowDays} days it is visible ${(100 * stats.window.earthFrac).toFixed(0)}% of the time.` }
+    : { icon: '⊕', title: 'No Earth, no direct radio link', body: `Earth does not clear nearby terrain and your radio-height setting right now, so a direct radio link is not available${stats.next.earthrise ? `; it rises in ${fmtDuration(stats.next.earthrise - useStore.getState().timeMs)}` : ''}. Near the poles the Earth wobbles in and out of view every month; on the far side it never appears.` });
+  items.push({ icon: '◐', title: 'No air changes everything', body: `There is no atmosphere: no twilight, no scattered light, no air bending sunlight above the horizon. Shadows are pitch black and a ${(2 * live.sun.radiusDeg).toFixed(2)}° solar disc sets in about an hour at the pole. Nearby terrain is estimated from NASA elevation maps.` });
   return (
     <section className="space-y-2" aria-label="Why is this hard?">
       <div className="label">Why is this hard?</div>
@@ -27,10 +27,10 @@ export interface TourStep { title: string; body: string; apply: () => void }
 export function tourSteps(): TourStep[] {
   const s = useStore.getState();
   return [
-    { title: 'The Moon, lit as it really is', body: 'Pins are landing sites; amber rings are in sunlight, blue ones in darkness. The line between day and night moves 15° per Earth day. Drag to orbit, scroll to zoom.', apply: () => { s.setView('globe'); s.selectSite('apollo11'); } },
+    { title: 'The Moon, lit as it really is', body: 'Pins are landing sites; amber rings are in sunlight, blue ones in darkness. Drag to turn the Moon. Scroll or pinch to zoom. A mountain can block sunlight even on the day side.', apply: () => { s.setView('globe'); s.selectSite('apollo11'); } },
     { title: 'The south pole is a different world', body: 'Near the pole the Sun only skims the horizon, so mountains cast shadows hundreds of kilometres long and some crater floors have been dark for two billion years. Artemis III targets the ridges that catch the most light.', apply: () => { s.setView('polar'); s.selectSite('artemis-cr'); } },
-    { title: 'Stand on the ridge', body: 'This is what the lander sees: the real LOLA terrain silhouette, the Sun at its true 0.5° size and the Earth at 2°. The dotted tracks show where both will travel over the next lunar day.', apply: () => { s.setView('horizon'); } },
+    { title: 'Stand on the ridge', body: 'This is what the lander sees: the terrain outline based on NASA maps, the Sun at its true 0.5° size and the Earth at 2°. The dotted tracks show where both will travel over the next lunar day.', apply: () => { s.setView('horizon'); } },
     { title: 'When is the next sunset?', body: 'The timeline stacks sunlight, Earth visibility and the overlap. Click anywhere to jump in time, press Play to watch the shadows move, or switch to a year to see the seasons.', apply: () => { s.setView('globe'); s.setSpan('month'); } },
-    { title: 'What if the launch slips?', body: 'Compare mode puts sites and dates side by side. Drag the slip slider and the deltas light up instantly: a week can turn a 90 into a 30.', apply: () => { s.setView('globe'); } },
+    { title: 'What if the launch slips?', body: 'Compare mode puts sites and dates side by side. Move the date slider to see whether an earlier or later landing gives more sunlight and Earth visibility.', apply: () => { s.setView('globe'); } },
   ];
 }

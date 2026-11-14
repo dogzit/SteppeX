@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '@/state/store';
 import { useCompare } from '@/state/compare';
+import { AudienceSwitch } from './AudienceSwitch';
 import { ViewsMenu } from './ViewsMenu';
 
 interface HudProps {
@@ -16,7 +17,7 @@ interface HudProps {
 
 export function Hud({ onPalette, onMethodology, onTour, compact = false, siteDrawerOpen, onToggleSiteDrawer, detailsDrawerOpen, onToggleDetailsDrawer }: HudProps) {
   const [toolsOpen, setToolsOpen] = useState(false);
-  const { timeMs, setTime, view, setView, showGrid, toggleGrid, mode, setMode } = useStore();
+  const { timeMs, setTime, view, setView, showGrid, toggleGrid } = useStore();
   const compareOpen = useCompare((s) => s.open), setCompareOpen = useCompare((s) => s.setOpen);
   const d = new Date(timeMs);
   const utcLocal = d.toISOString().slice(0, 16);
@@ -29,7 +30,7 @@ export function Hud({ onPalette, onMethodology, onTour, compact = false, siteDra
       </div>
       <div className="glass rounded-xl px-4 py-2 pointer-events-auto flex items-center gap-4 shrink-0">
         <div>
-          <div className="label">Mission time · UTC</div>
+          <div className="label">Selected date · UTC</div>
           <div className="num text-lg leading-tight whitespace-nowrap" aria-live="off">{d.toISOString().slice(0, 19).replace('T', ' ')}</div>
         </div>
         <input aria-label="Set date and time (UTC)" title="Set date and time (UTC)" type="datetime-local" className="num bg-transparent text-xs border-b border-white/15 focus:border-solar outline-none" value={utcLocal} onChange={(e) => { const t = Date.parse(e.target.value + ':00Z'); if (!Number.isNaN(t)) setTime(t); }} />
@@ -51,22 +52,20 @@ export function Hud({ onPalette, onMethodology, onTour, compact = false, siteDra
             <button className={seg(view === 'horizon')} onClick={() => setView('horizon')} aria-pressed={view === 'horizon'} title="Lander view (3)">Lander view</button>
           </div>
         )}
-        <button className={`btn ${showGrid ? 'btn-on' : ''}`} onClick={toggleGrid} aria-pressed={showGrid} title="Selenographic grid (G)">Grid</button>
-        <button className={`btn ${compareOpen ? 'btn-on' : ''}`} onClick={() => setCompareOpen(!compareOpen)} aria-pressed={compareOpen} title="Compare scenarios (C)">Compare</button>
+        <button className={`btn ${compareOpen ? 'btn-on' : ''}`} onClick={() => setCompareOpen(!compareOpen)} aria-pressed={compareOpen} title="Compare sites and dates (C)">Compare</button>
         <span className="w-px h-5 bg-white/10" />
-        <div className="flex rounded-md overflow-hidden border border-white/10" role="group" aria-label="Audience mode">
-          <button className={seg(mode === 'planner')} aria-pressed={mode === 'planner'} onClick={() => setMode('planner')} title="Planner mode (M)">Planner</button>
-          <button className={`px-2.5 py-1.5 text-xs transition-colors ${mode === 'explorer' ? 'bg-earth/20 text-earth' : 'bg-white/5 text-white/75 hover:bg-white/10'}`} aria-pressed={mode === 'explorer'} onClick={() => setMode('explorer')} title="Explorer mode (M)">Explorer</button>
-        </div>
-        {mode === 'explorer' && <button className="btn" onClick={onTour} title="Guided tour (T)">Tour</button>}
-        <button className="btn" onClick={onMethodology} title="Methodology & limitations (?)" aria-label="Methodology and limitations">?</button>
-        <button className="btn num" onClick={onPalette} title="Command palette (Ctrl/⌘ K)" aria-label="Command palette">⌘K</button>
+        <AudienceSwitch />
+        <details className="relative"><summary className="btn cursor-pointer">More tools</summary><div className="glass absolute right-0 top-full mt-2 p-3 rounded-xl min-w-44 flex flex-col gap-2 z-50">        <button className={`btn ${showGrid ? 'btn-on' : ''}`} onClick={toggleGrid} aria-pressed={showGrid} title="Show latitude and longitude lines (G)">Map lines</button>
+        <button className="btn" onClick={onTour} title="Guided tour (T)">Quick tour</button></div></details>
+        <button className="btn" onClick={onMethodology} title="How to use this app and understand the results (?)" aria-label="Help">Help</button>
+        <button className="btn num" onClick={onPalette} title="Command palette (Ctrl/⌘ K)" aria-label="Search sites and actions">Search</button>
       </div>
       <div className="phone-toolbar glass rounded-xl pointer-events-auto">
         <h1 className="text-xs font-semibold leading-tight">LUNAR<br /><span className="text-solar">NAVIGATOR</span></h1>
         <button className={`btn ${siteDrawerOpen ? 'btn-on' : ''}`} onClick={() => { setToolsOpen(false); onToggleSiteDrawer?.(); }} aria-expanded={siteDrawerOpen}>Sites</button>
         <button className={`btn ${detailsDrawerOpen ? 'btn-on' : ''}`} onClick={() => { setToolsOpen(false); onToggleDetailsDrawer?.(); }} aria-expanded={detailsDrawerOpen}>Details</button>
-        <button className="btn" onClick={() => setToolsOpen((v) => !v)} aria-expanded={toolsOpen} aria-label={toolsOpen ? 'Close controls' : 'Open controls'}>{toolsOpen ? '✕' : '•••'}</button>
+        <AudienceSwitch compact />
+        <button className="btn" onClick={() => setToolsOpen((v) => !v)} aria-expanded={toolsOpen} aria-label={toolsOpen ? 'Close menu' : 'Open menu'}>{toolsOpen ? 'Close' : 'Menu'}</button>
       </div>
     </header>
   );

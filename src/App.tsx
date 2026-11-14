@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { WelcomeHint } from './ui/WelcomeHint';
 import { Hud } from './ui/Hud';
 import { SitePanel } from './ui/SitePanel';
 import { Dashboard } from './ui/Dashboard';
@@ -95,15 +96,16 @@ export default function App() {
   return (
     <div className="relative h-full w-full hud-grid">
       {gl === false ? (
-        <div className="absolute inset-0 grid place-items-center text-center p-8"><div className="glass rounded-xl p-6 max-w-md"><div className="label">WebGL unavailable</div><p className="mt-2 text-sm text-white/80">The 3D views need WebGL. The dashboard, sky table, timeline and compare mode still work: pick a site on the left.</p></div></div>
+        <div className="absolute inset-0 grid place-items-center text-center p-8"><div className="glass rounded-xl p-6 max-w-md"><div className="label">The 3D view could not open</div><p className="mt-2 text-sm text-white/80">You can still explore the results. Choose a location in Sites, then open Details. To try the 3D view again, refresh the page or use a browser with 3D graphics enabled.</p></div></div>
       ) : (
-        <Suspense fallback={<div className="absolute inset-0 grid place-items-center"><div className="label animate-pulse">Loading lunar surface…</div></div>}>{gl && (view === 'horizon' ? <HorizonDome /> : <Globe />)}</Suspense>
+        <Suspense fallback={<div className="absolute inset-0 grid place-items-center"><div className="label animate-pulse">Getting the Moon ready…</div></div>}>{gl && (view === 'horizon' ? <HorizonDome /> : <Globe />)}</Suspense>
       )}
       <Hud onPalette={() => setPalette(true)} onMethodology={openMeth} onTour={() => setTour(0)}
         compact={compact} siteDrawerOpen={siteDrawerOpen} onToggleSiteDrawer={() => setSiteDrawerOpen(!siteDrawerOpen)}
         detailsDrawerOpen={detailsDrawerOpen} onToggleDetailsDrawer={() => setDetailsDrawerOpen(!detailsDrawerOpen)} />
       {!compareOpen && siteDrawerOpen && <SitePanel compact={compact} onClose={() => setSiteDrawerOpen(false)} />}
       {!compareOpen && detailsDrawerOpen && <Dashboard compact={compact} explorer={mode === 'explorer'} onClose={() => setDetailsDrawerOpen(false)} />}
+      {!siteDrawerOpen && !detailsDrawerOpen && !compareOpen && !intro && <WelcomeHint />}
       <Timeline />
       <Compare />
       <Toasts />

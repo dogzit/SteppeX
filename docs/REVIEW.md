@@ -25,3 +25,10 @@ Added a daily score-over-start-dates comparison (1–90 days, explicit sampling 
 
 ## Phase 3
 Panels start closed and can be opened/dismissed at every width. View changes clear them; lander controls move below the scene and hide while a panel is open. Planet-name clutter removed from the horizon. Table altitude is above terrain; radio clearance is explained separately. Details scroll resets on site change. Explorer copy distinguishes a 29.5-day cycle from remaining daylight. Focus outlines, small text and contrast improved. `npm test`: 48 pass; build passes; `e2e/judging.spec.ts`: 390px and 1440px layout checks both pass.
+
+## Phase 4
+Two presentation modes share the exact same scenario: Simple (default, everyday users) and Expert (advanced planning). Simple shows a computed site summary, score, sunlight/Earth essentials and the sunny-time finder; Expert reveals full measurements, battery/night tools, date comparison, sky table and advanced settings. Visible mode switch on phone and desktop; tested to preserve site/date/results. Search does not silently switch to a site's historical date. Help now starts with a task guide and a touch/keyboard glossary; technical provenance remains expandable. Added first-use guidance, invalid-coordinate messages, empty search recovery and clipboard failure feedback. Navigation/glossary English strings have an i18n source structure; no unreviewed Mongolian translation is presented.
+
+Initial copy audit: DTE, selenographic, libration/sub-Earth, disc centre/last limb, Earth mask, T-minus, launch slip/deltas and raw terrain-worker diagnostics. Navigation bottlenecks: buried date search, symbol-only actions, hidden empty/error states, overloaded settings and a technical-first help panel. These are replaced or explained.
+
+`npm test`: 48 pass. Build passes. Date-finder and judging browser suites: 10 pass, including both screen sizes, Simple/Expert state preservation, glossary focus return, and actionable errors.

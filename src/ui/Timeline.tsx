@@ -16,9 +16,9 @@ import { SYNODIC_MONTH_DAYS } from '@/astro';
 
 const STEP: Record<Span, number> = { day: 120_000, month: 1200_000, year: 7200_000 };
 const LANES = [
-  { key: 'sun', label: 'Sun up', color: '#ffb547', pattern: 'none' },
-  { key: 'earth', label: 'Earth up', color: '#5fc3ff', pattern: 'none' },
-  { key: 'both', label: 'Power + DTE', color: '#9ef0c0', pattern: 'hatch' },
+  { key: 'sun', label: 'Sunlight', color: '#ffb547', pattern: 'none' },
+  { key: 'earth', label: 'Earth visible', color: '#5fc3ff', pattern: 'none' },
+  { key: 'both', label: 'Sun + Earth', color: '#9ef0c0', pattern: 'hatch' },
 ] as const;
 
 export function Timeline() {
@@ -68,11 +68,11 @@ export function Timeline() {
   return (
     <footer className="app-timeline absolute left-4 right-4 bottom-3 z-20 glass rounded-xl px-3 py-2 flex items-center gap-3" aria-label="Timeline and time controls">
       <div className="flex items-center gap-1 shrink-0" role="group" aria-label="Transport">
-        <button className="btn num" title="Back one lunar day (29.53 d)" aria-label="Back one lunar day" onClick={() => stepTime(-SYNODIC_MONTH_DAYS * 86400_000)}>«☾</button>
+        <button className="btn num" title="Go back about 29.5 Earth days" aria-label="Back one lunar day" onClick={() => stepTime(-SYNODIC_MONTH_DAYS * 86400_000)}>«☾</button>
         <button className="btn num" title="Back one Earth day" aria-label="Back one day" onClick={() => stepTime(-86400_000)}>−1d</button>
         <button className={`btn w-16 ${playing ? 'btn-on' : ''}`} onClick={togglePlay} aria-pressed={playing} aria-label={playing ? 'Pause' : 'Play'}>{playing ? '❚❚ Pause' : '▶ Play'}</button>
         <button className="btn num" title="Forward one Earth day" aria-label="Forward one day" onClick={() => stepTime(86400_000)}>+1d</button>
-        <button className="btn num" title="Forward one lunar day (29.53 d)" aria-label="Forward one lunar day" onClick={() => stepTime(SYNODIC_MONTH_DAYS * 86400_000)}>☾»</button>
+        <button className="btn num" title="Go forward about 29.5 Earth days" aria-label="Forward one lunar day" onClick={() => stepTime(SYNODIC_MONTH_DAYS * 86400_000)}>☾»</button>
         <select aria-label="Playback speed" className="btn num bg-ink" value={speed} onChange={(e) => setSpeed(+e.target.value)}>
           {SPEEDS.map((s) => <option key={s} value={s}>{s < 3600 ? `${s / 60} min/s` : s < 86400 ? `${s / 3600} h/s` : `${s / 86400} d/s`}</option>)}
         </select>
@@ -125,7 +125,7 @@ export function Timeline() {
         )}
       </div>
       <div className="flex items-center gap-1 shrink-0" role="group" aria-label="Span">
-        {(['day', 'month', 'year'] as Span[]).map((s) => <button key={s} className={`btn ${span === s ? 'btn-on' : ''}`} aria-pressed={span === s} onClick={() => setSpan(s)}>{s === 'month' ? 'Lunar month' : s[0].toUpperCase() + s.slice(1)}</button>)}
+        {(['day', 'month', 'year'] as Span[]).map((s) => <button key={s} className={`btn ${span === s ? 'btn-on' : ''}`} aria-pressed={span === s} onClick={() => setSpan(s)}>{s === 'month' ? '29.5 days' : s[0].toUpperCase() + s.slice(1)}</button>)}
       </div>
       {viewportWidth < 640 && <button className="phone-timeline-close btn" aria-expanded={true} onClick={() => setPhoneExpanded(false)}>Close timeline ↓</button>}
     </footer>
