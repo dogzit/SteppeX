@@ -1,6 +1,6 @@
 import type { Metrics } from '@/astro';
+import { downloadFile as dl } from './download';
 export interface ExportRow { label: string; lat: number; lon: number; landingUtc: string; slipDays: number; windowDays: number; horizon: string; metrics: Metrics }
-const dl = (name: string, body: string, type: string) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([body], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); };
 export function exportJson(rows: ExportRow[]) {
   dl(`lunar-navigator-compare-${Date.now()}.json`, JSON.stringify({ generated: new Date().toISOString(), tool: 'Lunar Navigator', scoreFormula: '40*discFrac + 30*earthFrac + 15*continuity + 15*min(1, hoursToDark/72)', rows }, null, 1), 'application/json');
 }

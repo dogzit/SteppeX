@@ -27,6 +27,9 @@ interface State {
   showGrid: boolean; toggleGrid: () => void;
   hoverSiteId: string | null; setHover: (id: string | null) => void;
   flyToken: number; zoomNear: boolean; ephemReady: boolean; horizonsReady: boolean; introDone: boolean; cinematic: boolean;
+  /** Find-a-window: search settings (persisted) and the currently shared/highlighted mission window. */
+  fwSunHours: number; fwEarthHours: number; setFwSunHours: (h: number) => void; setFwEarthHours: (h: number) => void;
+  fwSelStart: number | null; fwSelEnd: number | null; setFwSelection: (start: number, end: number) => void; clearFwSelection: () => void;
 }
 
 const url = readUrlState();
@@ -45,6 +48,11 @@ export const useStore = create<State>((set) => ({
   showGrid: false, toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
   hoverSiteId: null, setHover: (hoverSiteId) => set({ hoverSiteId }),
   flyToken: 0, zoomNear: false, ephemReady: false, horizonsReady: false, introDone: false, cinematic: false,
+  fwSunHours: url.fwSunHours ?? 48, fwEarthHours: url.fwEarthHours ?? 2,
+  setFwSunHours: (fwSunHours) => set({ fwSunHours }), setFwEarthHours: (fwEarthHours) => set({ fwEarthHours }),
+  fwSelStart: url.fwSelStart ?? null, fwSelEnd: url.fwSelEnd ?? null,
+  setFwSelection: (fwSelStart, fwSelEnd) => set({ fwSelStart, fwSelEnd }),
+  clearFwSelection: () => set({ fwSelStart: null, fwSelEnd: null }),
 }));
 
 // URL sync (throttled)

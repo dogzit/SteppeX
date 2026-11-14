@@ -7,6 +7,7 @@ import { SCORE_WEIGHTS, subPoints } from '@/astro';
 import { useMemo } from 'react';
 import { SkyTable } from './SkyTable';
 import { ExplorerCallouts } from './Explorer';
+import { FindWindowPanel } from './FindWindowPanel';
 
 const CONF: Record<string, [string, string]> = { high: ['Verified', 'text-emerald-300 border-emerald-400/30'], medium: ['Published · limited precision', 'text-sky-300 border-sky-400/30'], approx: ['Approximate region', 'text-rose-300 border-rose-400/30'] };
 
@@ -21,7 +22,7 @@ export function Dashboard({ explorer = false }: { explorer?: boolean }) {
   const dte = stats.window.earthWindows.filter((w) => w.end > timeMs).slice(0, 4);
   const lib = useMemo(() => subPoints(new Date(timeMs)).subEarth, [timeMs]);
   return (
-    <aside className="absolute right-4 top-28 bottom-36 z-20 w-[25rem] glass rounded-xl flex flex-col overflow-hidden" aria-label="Power and communications dashboard">
+    <aside className="absolute right-4 top-28 bottom-36 z-20 w-[25rem] max-w-[calc(100vw-2rem)] glass rounded-xl flex flex-col overflow-hidden" aria-label="Power and communications dashboard">
       <div className="p-4 border-b border-white/10">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -67,6 +68,7 @@ export function Dashboard({ explorer = false }: { explorer?: boolean }) {
             ))}</ul>
           )}
         </section>
+        <FindWindowPanel />
         <SkyTable />
         {!explorer && <section className="grid grid-cols-3 gap-2 items-end" aria-label="Analysis options">
           <label className="flex flex-col"><span className="label">Window · days</span><input type="number" min={1} max={400} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={windowDays} onChange={(e) => { const v = +e.target.value; if (v >= 1 && v <= 400) setWindowDays(v); }} /></label>

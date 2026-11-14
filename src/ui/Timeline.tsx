@@ -16,7 +16,7 @@ const LANES = [
 
 export function Timeline() {
   const site = useActiveSite(); const hz = useHorizon(site); const opts = useOptions();
-  const { timeMs, setTime, span, setSpan, playing, togglePlay, speed, setSpeed, stepTime, ephemReady } = useStore();
+  const { timeMs, setTime, span, setSpan, playing, togglePlay, speed, setSpeed, stepTime, ephemReady, fwSelStart, fwSelEnd } = useStore();
   const spanMs = SPAN_MS[span], dt = STEP[span];
   // Anchor the visible span so the playhead sits 30% in; snap to a coarse grid so the series is cached while time plays.
   const start = Math.floor((timeMs - spanMs * 0.3) / (spanMs / 48)) * (spanMs / 48);
@@ -37,7 +37,8 @@ export function Timeline() {
   const dragging = useRef(false);
   const idxAt = (t: number) => Math.max(0, Math.min(data.ss.n - 1, Math.round((t - start) / dt)));
   const hv = hover !== null ? idxAt(hover) : null;
-  const summary = `Timeline for ${site.name} over one ${span}: sunlit ${fmtPct(data.sunFrac)}, Earth visible ${fmtPct(data.earthFrac)}, both ${fmtPct(data.bothFrac)}.`;
+  const summary = `Timeline for ${site.name} over one ${span}: sunlit ${fmtPct(data.sunFrac)}, Earth visible ${fmtPct(data.earthFrac)}, both ${fmtPct(data.bothFrac)}.`
+    + (fwSelStart !== null && fwSelEnd !== null ? ` Highlighted mission window: ${fmtDateTime(fwSelStart)} to ${fmtDateTime(fwSelEnd)}.` : '');
 
   return (
     <footer className="absolute left-4 right-4 bottom-3 z-20 glass rounded-xl px-3 py-2 flex items-center gap-3" aria-label="Timeline and time controls">
@@ -70,6 +71,17 @@ export function Timeline() {
               </g>
             );
           })}
+          {fwSelStart !== null && fwSelEnd !== null && fwSelEnd > start && fwSelStart < start + spanMs && (() => {
+            const x1 = Math.max(PAD_L, x(Math.max(fwSelStart, start)));
+            const x2 = Math.min(W - PAD_R, x(Math.min(fwSelEnd, start + spanMs)));
+            const w = Math.max(1, x2 - x1);
+            return (
+              <g aria-hidden>
+                <rect x={x1} y={top - 2} width={w} height={3 * laneH + 6} fill="#ffffff" opacity={0.08} />
+                <rect x={x1} y={top - 2} width={w} height={3 * laneH + 6} fill="none" stroke="#ffffff" strokeWidth={1.2} strokeDasharray="4 3" />
+              </g>
+            );
+          })()}
           <line x1={x(timeMs)} x2={x(timeMs)} y1={2} y2={H - 12} stroke="#fff" strokeWidth={1.5} />
           <polygon points={`${x(timeMs) - 5},2 ${x(timeMs) + 5},2 ${x(timeMs)},9`} fill="#fff" />
           {hover !== null && <line x1={x(hover)} x2={x(hover)} y1={2} y2={H - 12} stroke="rgba(255,255,255,.35)" strokeDasharray="3 3" />}
