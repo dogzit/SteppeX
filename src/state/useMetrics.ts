@@ -3,7 +3,6 @@ import { computeMetrics, skyAt, horizonAt, discFraction, SUN_RADIUS_DEG_MEAN, ty
 import { useStore, useActiveSite, type ActiveSite } from './store';
 import { useHorizon } from './useHorizon';
 
-const HOUR = 3600_000;
 export function useOptions(): Options {
   const sunsetDef = useStore((s) => s.sunsetDef), earthMarginDeg = useStore((s) => s.earthMarginDeg);
   return useMemo(() => ({ sunsetDef, earthMarginDeg }), [sunsetDef, earthMarginDeg]);
@@ -12,12 +11,10 @@ export function useOptions(): Options {
 export function useMetrics() {
   const site = useActiveSite(), timeMs = useStore((s) => s.timeMs), windowDays = useStore((s) => s.windowDays), ready = useStore((s) => s.ephemReady);
   const opts = useOptions(); const hz = useHorizon(site);
-  const bucket = Math.floor(timeMs / HOUR) * HOUR;
-  const stats = useMemo(() => computeMetrics({ lat: site.lat, lon: site.lon, heightKm: site.heightKm }, hz, bucket, windowDays, opts), [site, hz, bucket, windowDays, opts, ready]); // hz identity changes when terrain loads // eslint-disable-line react-hooks/exhaustive-deps
-  const passed = [stats.next.sunset, stats.next.sunrise, stats.next.earthset, stats.next.earthrise].some((t) => t !== null && t < timeMs);
-  const fresh = useMemo(() => (passed ? computeMetrics({ lat: site.lat, lon: site.lon, heightKm: site.heightKm }, hz, timeMs, windowDays, opts) : null), [passed, site, hz, timeMs, windowDays, opts]);
+  // The selected minute is part of the scenario: never substitute an earlier hour's window.
+  const stats = useMemo(() => computeMetrics({ lat: site.lat, lon: site.lon, heightKm: site.heightKm }, hz, timeMs, windowDays, opts), [site, hz, timeMs, windowDays, opts, ready]);
   const live = useMemo(() => liveValues(site, hz, timeMs, opts), [site, hz, timeMs, opts]);
-  return { stats: fresh ?? stats, live, horizon: hz };
+  return { stats, live, horizon: hz };
 }
 export function liveValues(site: ActiveSite, hz: HorizonProfile, timeMs: number, opts: Options) {
   const sky = skyAt({ lat: site.lat, lon: site.lon, heightKm: site.heightKm }, new Date(timeMs));

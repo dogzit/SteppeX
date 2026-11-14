@@ -81,9 +81,54 @@ export function nextEvents(site: Site, hz: HorizonProfile, nowMs: number, o: Opt
   return { sunset: find(v.sunUp, 'sun', 0), sunrise: find(v.sunUp, 'sun', 1), earthset: find(v.earthUp, 'earth', 0), earthrise: find(v.earthUp, 'earth', 1), searchedUntil: t0 + (n - 1) * stepMs };
 }
 
+/** Build intervals from refined terrain crossings; endpoints are the exact requested limits.
+ * The coarse grid only brackets events. Its cells are never counted as mission duration.
+ */
+export function refinedWindows(site: Site, hz: HorizonProfile, body: 'sun' | 'earth', start: number, end: number, o: Options = DEFAULT_OPTIONS, stepMs = 3600_000): Window[] {
+  if (end <= start) return [];
+  const t0 = Math.floor(start / stepMs) * stepMs;
+  const n = Math.ceil((end - t0) / stepMs) + 1;
+  const v = visibility(siteSeries(buildSeries(t0, stepMs, n), site), hz, o);
+  const flags = body === 'sun' ? v.sunUp : v.earthUp;
+  const spans: Window[] = [];
+  let up = clearanceAt(site, hz, body, start, o) > 0, a = start, previous = start;
+  for (let k = 1; k < n; k++) {
+    const t = Math.min(end, t0 + k * stepMs);
+    if (t <= previous) continue;
+    let target = t === end ? clearanceAt(site, hz, body, t, o) > 0 : flags[k] === 1;
+    if (target !== up) {
+      // Verify the sampled crossing with the same exact geometry used for live readouts.
+      target = clearanceAt(site, hz, body, t, o) > 0;
+      if (target !== up) {
+        const edge = refine(site, hz, body, previous, t, o);
+        if (up) spans.push({ start: a, end: edge, openStart: a === start, openEnd: false });
+        a = edge; up = target;
+      }
+    }
+    previous = t;
+    if (t === end) break;
+  }
+  if (up) spans.push({ start: a, end, openStart: a === start, openEnd: true });
+  return spans;
+}
+export function complementWindows(spans: Window[], start: number, end: number): Window[] {
+  const result: Window[] = []; let cursor = start;
+  for (const span of spans) { if (span.start > cursor) result.push({ start: cursor, end: span.start, openStart: cursor === start, openEnd: false }); cursor = span.end; }
+  if (cursor < end) result.push({ start: cursor, end, openStart: cursor === start, openEnd: true });
+  return result;
+}
+export function intersectWindows(a: Window[], b: Window[], start: number, end: number): Window[] {
+  const result: Window[] = [];
+  for (const x of a) for (const y of b) {
+    const lo = Math.max(start, x.start, y.start), hi = Math.min(end, x.end, y.end);
+    if (hi > lo) result.push({ start: lo, end: hi, openStart: lo === start, openEnd: hi === end });
+  }
+  return result;
+}
+
 export interface Metrics {
   now: { sunEl: number; sunAz: number; earthEl: number; earthAz: number; sunClear: number; earthClear: number; sunFrac: number; sunUp: boolean; earthUp: boolean; earthRadiusDeg: number; sunRadiusDeg: number; earthDistKm: number };
-  window: { startMs: number; endMs: number; sunlitFrac: number; effectiveSunFrac: number; earthFrac: number; bothFrac: number; longestSunlitMs: number; longestDarkMs: number; sunWindows: Window[]; earthWindows: Window[]; bothWindows: Window[] };
+  window: { startMs: number; endMs: number; sunlitFrac: number; effectiveSunFrac: number; earthFrac: number; bothFrac: number; longestSunlitMs: number; longestDarkMs: number; sunWindows: Window[]; earthWindows: Window[]; bothWindows: Window[]; darkWindows: Window[] };
   next: NextEvents;
   score: { total: number; power: number; comms: number; continuity: number; margin: number };
 }
@@ -92,22 +137,31 @@ export const SCORE_WEIGHTS = { power: 0.4, comms: 0.3, continuity: 0.15, margin:
 export function computeMetrics(site: Site, hz: HorizonProfile, nowMs: number, windowDays = 14, o: Options = DEFAULT_OPTIONS): Metrics {
   const sky = skyAt(site, new Date(nowMs));
   const sunClear = sky.sun.el - horizonAt(hz, sky.sun.az), earthClear = sky.earth.el - horizonAt(hz, sky.earth.az) - o.earthMarginDeg;
-  const dt = 600_000, n = Math.round((windowDays * 86400_000) / dt) + 1, t0 = Math.floor(nowMs / dt) * dt;
-  const ss = siteSeries(buildSeries(t0, dt, n), site), v = visibility(ss, hz, o);
-  let sunN = 0, earthN = 0, bothN = 0, eff = 0;
-  for (let i = 0; i < n; i++) { sunN += v.sunUp[i]; earthN += v.earthUp[i]; bothN += v.both[i]; eff += v.sunFrac[i]; }
-  const sunWindows = windows(v.sunUp, t0, dt), earthWindows = windows(v.earthUp, t0, dt), bothWindows = windows(v.both, t0, dt);
+  const windowMs = windowDays * 86400_000, end = nowMs + windowMs;
+  const sunWindows = refinedWindows(site, hz, 'sun', nowMs, end, o);
+  const earthWindows = refinedWindows(site, hz, 'earth', nowMs, end, o);
+  const darkWindows = complementWindows(sunWindows, nowMs, end);
+  const bothWindows = intersectWindows(sunWindows, earthWindows, nowMs, end);
+  const duration = (ws: Window[]) => ws.reduce((sum, w) => sum + w.end - w.start, 0);
   const longest = (ws: Window[]) => ws.reduce((m, w) => Math.max(m, w.end - w.start), 0);
-  const dark = new Uint8Array(n); for (let i = 0; i < n; i++) dark[i] = v.sunUp[i] ? 0 : 1;
+  // The visible-disc integral remains sampled, with trapezoid weights and exact mission endpoints.
+  // Binary visibility, longest runs and continuity all come exclusively from refined events above.
+  const dt = 600_000, n = Math.ceil(windowMs / dt) + 1;
+  const ss = siteSeries(buildSeries(nowMs, dt, n), site), v = visibility(ss, hz, o);
+  let integral = 0;
+  for (let i = 0; i < n - 1; i++) {
+    const width = Math.min(dt, windowMs - i * dt);
+    const right = i === n - 2 ? discFraction(skyAt(site, new Date(end)).sun.el - horizonAt(hz, skyAt(site, new Date(end)).sun.az), SUN_RADIUS_DEG_MEAN) : v.sunFrac[i + 1];
+    integral += width * (v.sunFrac[i] + right) / 2;
+  }
   const next = nextEvents(site, hz, nowMs, o);
-  const windowMs = windowDays * 86400_000;
-  const power = eff / n, comms = earthN / n, continuity = Math.min(1, longest(sunWindows) / windowMs);
+  const power = integral / windowMs, comms = duration(earthWindows) / windowMs, continuity = longest(sunWindows) / windowMs;
   const hoursToDark = sunClear + sunOffset(o) > 0 ? (next.sunset ? (next.sunset - nowMs) / 3600_000 : MARGIN_BATTERY_HOURS) : 0;
   const margin = Math.min(1, hoursToDark / MARGIN_BATTERY_HOURS);
   const total = 100 * (SCORE_WEIGHTS.power * power + SCORE_WEIGHTS.comms * comms + SCORE_WEIGHTS.continuity * continuity + SCORE_WEIGHTS.margin * margin);
   return {
     now: { sunEl: sky.sun.el, sunAz: sky.sun.az, earthEl: sky.earth.el, earthAz: sky.earth.az, sunClear, earthClear, sunFrac: discFraction(sunClear, SUN_RADIUS_DEG_MEAN), sunUp: sunClear + sunOffset(o) > 0, earthUp: earthClear > 0, earthRadiusDeg: sky.earth.radiusDeg, sunRadiusDeg: sky.sun.radiusDeg, earthDistKm: sky.earth.distKm },
-    window: { startMs: t0, endMs: t0 + (n - 1) * dt, sunlitFrac: sunN / n, effectiveSunFrac: power, earthFrac: comms, bothFrac: bothN / n, longestSunlitMs: longest(sunWindows), longestDarkMs: longest(windows(dark, t0, dt)), sunWindows, earthWindows, bothWindows },
+    window: { startMs: nowMs, endMs: end, sunlitFrac: duration(sunWindows) / windowMs, effectiveSunFrac: power, earthFrac: comms, bothFrac: duration(bothWindows) / windowMs, longestSunlitMs: longest(sunWindows), longestDarkMs: longest(darkWindows), sunWindows, earthWindows, bothWindows, darkWindows },
     next,
     score: { total, power: 100 * power, comms: 100 * comms, continuity: 100 * continuity, margin: 100 * margin },
   };

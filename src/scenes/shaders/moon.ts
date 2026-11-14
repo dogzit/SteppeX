@@ -7,7 +7,7 @@ void main() {
 }`;
 
 export const moonFrag = /* glsl */ `
-uniform sampler2D uColor; uniform sampler2D uNormal;
+uniform sampler2D uColor; uniform sampler2D uNormal; uniform sampler2D uSouth; uniform sampler2D uNorth;
 uniform vec3 uSunDir; uniform vec3 uEarthDir; uniform float uEarthPhase;
 uniform float uGrid; uniform float uNormalStrength; uniform float uExposure;
 varying vec3 vNormal; varying vec2 vUv; varying vec3 vWorldPos;
@@ -19,7 +19,10 @@ float gridLine(float coord, float stepDeg) {
 void main() {
   vec3 albedo = texture2D(uColor, vUv).rgb;
   vec3 N = normalize(vNormal);
-  vec3 T = normalize(cross(vec3(0.0, 1.0, 0.0), N)); vec3 B = cross(N, T);
+  float polar = smoothstep(sin(radians(79.0)), sin(radians(81.0)), abs(N.y));
+  vec2 polarUv = vec2(N.x, -N.z) / (1.0 + abs(N.y)) / tan(radians(7.5)) * 0.5 + 0.5;
+  vec3 polarShade = N.y < 0.0 ? texture2D(uSouth, polarUv).rgb : texture2D(uNorth, polarUv).rgb;
+  vec3 T = normalize(cross(normalize(vec3(0.00001, 1.0, 0.0)), N)); vec3 B = cross(N, T);
   vec3 nm = texture2D(uNormal, vUv).xyz * 2.0 - 1.0; nm.xy *= uNormalStrength;
   vec3 n = normalize(T * nm.x + B * nm.y + N * nm.z);
 
@@ -35,7 +38,8 @@ void main() {
   float es = max(dot(N, uEarthDir), 0.0) * uEarthPhase;
   vec3 night = albedo * (0.028 + 0.05 * es) * vec3(0.55, 0.68, 0.9) * max(dot(n, N), 0.0);
 
-  vec3 col = (sun + night) * uExposure;
+  vec3 col = mix((sun + night) * uExposure, polarShade * (0.24 + 0.76 * macro), polar);
+  // Polar hillshade is cartographic relief under fixed display lighting, not a solar simulation.
   // Thin selenographic grid every 15°, amber-tinted at the equator and prime meridian.
   if (uGrid > 0.5) {
     float lon = vUv.x * 360.0 - 180.0, lat = vUv.y * 180.0 - 90.0;

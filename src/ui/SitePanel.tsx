@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import { SITES, GROUP_LABEL, GROUP_ORDER, COORD_DECIMALS, fmtLat, fmtLon } from '@/data/sites';
-import { useStore } from '@/state/store';
+import { useActiveSite, useStore } from '@/state/store';
 
 const STATUS: Record<string, string> = { landed: 'text-emerald-300', planned: 'text-sky-300', failed: 'text-rose-300', region: 'text-solar', reference: 'text-haze' };
 
 export function SitePanel({ compact = false, onClose }: { compact?: boolean; onClose?: () => void }) {
-  const { siteId, selectSite, setCustom, setHover, custom } = useStore();
+  const { siteId, selectSite, setCustom, setHover } = useStore();
+  const active = useActiveSite();
   const [q, setQ] = useState('');
-  const [lat, setLat] = useState(custom ? custom.lat.toFixed(COORD_DECIMALS) : '-89.5');
-  const [lon, setLon] = useState(custom ? custom.lon.toFixed(COORD_DECIMALS) : '0');
+  const [lat, setLat] = useState(active.lat.toFixed(COORD_DECIMALS));
+  const [lon, setLon] = useState(active.lon.toFixed(COORD_DECIMALS));
   // Keep the displayed text in step with the committed value (a globe click, a URL-loaded pin, or this
   // form's own submit) at the same precision as the header, without touching full precision in the store
   // or fighting the user's own in-progress keystrokes (which only change local state, not `custom`).
   useEffect(() => {
-    if (custom) { setLat(custom.lat.toFixed(COORD_DECIMALS)); setLon(custom.lon.toFixed(COORD_DECIMALS)); }
-  }, [custom]);
+    setLat(active.lat.toFixed(COORD_DECIMALS)); setLon(active.lon.toFixed(COORD_DECIMALS));
+  }, [active.lat, active.lon]);
   const filtered = SITES.filter((s) => s.name.toLowerCase().includes(q.toLowerCase()));
   return (
     <aside className={compact ? 'compact-drawer absolute inset-x-4 top-28 bottom-36 z-30 glass rounded-xl flex flex-col overflow-hidden' : 'absolute left-4 top-28 bottom-36 z-20 w-80 max-w-[calc(100vw-2rem)] glass rounded-xl flex flex-col overflow-hidden'} aria-label="Site library">

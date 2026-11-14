@@ -43,6 +43,7 @@ export default function Globe() {
       <color attach="background" args={['#05070b']} />
       <Scene />
     </Canvas>
+    <div className="absolute left-1/2 -translate-x-1/2 bottom-36 text-xs text-haze pointer-events-none">Polar relief: NASA LRO LOLA / PDS · fixed map lighting</div>
     <LabelLayer siteSun={eph.siteSun} earthPos={eph.earthPos} />
     </div>
   );

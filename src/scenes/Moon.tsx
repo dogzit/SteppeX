@@ -9,14 +9,14 @@ import { useStore } from '@/state/store';
 interface Props { sunDir: THREE.Vector3; earthDir: THREE.Vector3; earthPhase: number }
 
 export function Moon({ sunDir, earthDir, earthPhase }: Props) {
-  const [color, normal] = useTexture([`${import.meta.env.BASE_URL}textures/moon_color_4k.jpg`, `${import.meta.env.BASE_URL}textures/moon_normal_2k.jpg`]);
+  const [color, normal, south, north] = useTexture([`${import.meta.env.BASE_URL}textures/moon_color_4k.jpg`, `${import.meta.env.BASE_URL}textures/moon_normal_2k.jpg`, `${import.meta.env.BASE_URL}textures/polar-south.png`, `${import.meta.env.BASE_URL}textures/polar-north.png`]);
   color.colorSpace = THREE.SRGBColorSpace; color.anisotropy = 8; normal.colorSpace = THREE.NoColorSpace; normal.anisotropy = 4;
   const showGrid = useStore((s) => s.showGrid);
   const setCustom = useStore((s) => s.setCustom);
   const mat = useMemo(() => new THREE.ShaderMaterial({
     vertexShader: moonVert, fragmentShader: moonFrag,
-    uniforms: { uColor: { value: color }, uNormal: { value: normal }, uSunDir: { value: new THREE.Vector3(1, 0, 0) }, uEarthDir: { value: new THREE.Vector3(1, 0, 0) }, uEarthPhase: { value: 0.5 }, uGrid: { value: 0 }, uNormalStrength: { value: 1.0 }, uExposure: { value: 1.0 } },
-  }), [color, normal]);
+    uniforms: { uColor: { value: color }, uSouth: { value: south }, uNorth: { value: north }, uNormal: { value: normal }, uSunDir: { value: new THREE.Vector3(1, 0, 0) }, uEarthDir: { value: new THREE.Vector3(1, 0, 0) }, uEarthPhase: { value: 0.5 }, uGrid: { value: 0 }, uNormalStrength: { value: 1.0 }, uExposure: { value: 1.0 } },
+  }), [color, normal, south, north]);
   const rim = useMemo(() => new THREE.ShaderMaterial({ vertexShader: rimVert, fragmentShader: rimFrag, uniforms: { uSunDir: { value: new THREE.Vector3(1, 0, 0) } }, transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.AdditiveBlending }), []);
   const ref = useRef<THREE.Mesh>(null);
   useFrame(() => {

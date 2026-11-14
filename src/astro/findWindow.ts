@@ -9,8 +9,7 @@
  *    visibility/windows used by the dashboard and timeline, same Options), then bisection-refines every
  *    window edge with the existing `refine`/`clearanceAt` so results agree with the live readouts to ~1 s.
  */
-import { buildSeries, siteSeries } from './series';
-import { visibility, windows, refine, DEFAULT_OPTIONS, type Options, type Window } from './events';
+import { refinedWindows, DEFAULT_OPTIONS, type Options, type Window } from './events';
 import type { HorizonProfile } from './horizon';
 import type { Site } from './topocentric';
 
@@ -123,16 +122,6 @@ export function findWindowsCore(
   return { candidates: raw.slice(0, maxResults), longestSunlitMs: longest, longestSunlitIsLowerBound: longestLower, sunlightSufficient, bestEarthOverlapMs };
 }
 
-/** Refines sample-grid window edges to ~1 s via the same bisection used for sunset/Earthset elsewhere. */
-function refineWindows(raw: Window[], body: 'sun' | 'earth', site: Site, hz: HorizonProfile, o: Options, dt: number): Window[] {
-  return raw.map((w) => ({
-    start: w.openStart ? w.start : refine(site, hz, body, w.start - dt, w.start, o),
-    end: w.openEnd ? w.end : refine(site, hz, body, w.end - dt, w.end, o),
-    openStart: w.openStart,
-    openEnd: w.openEnd,
-  }));
-}
-
 export interface FindWindowParams {
   site: Site;
   horizon: HorizonProfile;
@@ -153,10 +142,7 @@ export interface FindWindowParams {
 export function findWindow(p: FindWindowParams): FindWindowOutcome {
   const o = p.options ?? DEFAULT_OPTIONS;
   const dt = p.sampleMs ?? 900_000;
-  const n = Math.ceil((p.searchEnd - p.searchStart) / dt) + 1;
-  const ss = siteSeries(buildSeries(p.searchStart, dt, n), p.site);
-  const v = visibility(ss, p.horizon, o);
-  const sunWindows = refineWindows(windows(v.sunUp, p.searchStart, dt), 'sun', p.site, p.horizon, o, dt);
-  const earthWindows = p.requiredEarthMs > 0 ? refineWindows(windows(v.earthUp, p.searchStart, dt), 'earth', p.site, p.horizon, o, dt) : [];
+  const sunWindows = refinedWindows(p.site, p.horizon, 'sun', p.searchStart, p.searchEnd, o, dt);
+  const earthWindows = p.requiredEarthMs > 0 ? refinedWindows(p.site, p.horizon, 'earth', p.searchStart, p.searchEnd, o, dt) : [];
   return findWindowsCore(sunWindows, earthWindows, p.searchStart, p.requiredSunMs, p.requiredEarthMs, p.maxResults ?? 3);
 }

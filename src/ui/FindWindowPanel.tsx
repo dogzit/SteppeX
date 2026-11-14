@@ -25,7 +25,7 @@ export function FindWindowPanel() {
   const { setFwSunHours, setFwEarthHours, setFwSelection, setTime, setView } = useStore();
 
   // Bucketed to the hour, matching useMetrics, so scrubbing/playback doesn't re-run the 90-day search every frame.
-  const bucket = Math.floor(timeMs / HOUR) * HOUR;
+  const bucket = timeMs;
   const requiredSunMs = Math.max(0, fwSunHours) * HOUR;
   const requiredEarthMs = Math.max(0, fwEarthHours) * HOUR;
 
