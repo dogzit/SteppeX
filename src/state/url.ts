@@ -27,7 +27,7 @@ export function writeUrlState(s: Required<Pick<UrlState, 'siteId' | 'custom' | '
   if (s.span !== 'month') q.set('span', s.span);
   if (s.windowDays !== 14) q.set('win', String(s.windowDays));
   if (s.sunsetDef !== 'center') q.set('sunset', s.sunsetDef);
-  if (s.earthMarginDeg !== 0) q.set('margin', String(s.earthMarginDeg));
+  if (s.earthMarginDeg !== 5) q.set('margin', String(s.earthMarginDeg));
   if (s.mode !== 'planner') q.set('mode', s.mode);
   // find-a-window: omitted entirely at defaults / unset, so untouched sessions keep the existing link shape
   if (s.fwSunHours !== undefined && s.fwSunHours !== 48) q.set('fwsun', String(s.fwSunHours));

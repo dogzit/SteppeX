@@ -5,6 +5,7 @@ import { useStore, resolveSite } from '@/state/store';
 import { useCompare, type Scenario } from '@/state/compare';
 import { useOptions } from '@/state/useMetrics';
 import { getLibraryHorizon, requestCustomHorizon } from '@/state/useHorizon';
+import { leadingScores } from './scoreModel';
 import { fmtDateTime, fmtDuration, fmtPct } from './format';
 import { exportCsv, exportJson, type ExportRow } from './export';
 
@@ -47,7 +48,7 @@ function Card({ sc, baseMs, slipDays, windowDays, best, onMetrics }: { sc: Scena
       <div className="flex items-end gap-3">
         <div><div className="label">Viability</div><div className={`num text-4xl leading-none ${tone}`}>{m.score.total.toFixed(0)}</div></div>
         <div className="pb-1"><Delta v={m.score.total - base.score.total} /></div>
-        {best && <span className="label text-emerald-300 ml-auto">best</span>}
+        {best && <span className="label text-emerald-300 ml-auto">best (including ties)</span>}
       </div>
       <dl className="grid grid-cols-[1fr_auto_auto] gap-x-2 gap-y-1 text-[11px] num">
         <Row l="Sunlight" v={fmtPct(w.sunlitFrac)} d={<Delta v={100 * (w.sunlitFrac - bw.sunlitFrac)} unit="pt" />} />
@@ -81,7 +82,7 @@ export function Compare() {
   const [rows, setRows] = useState<Record<string, ExportRow>>({});
   const onMetrics = useMemo(() => (key: string, row: ExportRow) => setRows((r) => (r[key] === row ? r : { ...r, [key]: row })), []);
   const list = scenarios.map((s) => rows[s.key]).filter(Boolean);
-  const bestKey = scenarios.length > 1 ? scenarios.reduce((b, s) => (rows[s.key] && (!b || rows[s.key].metrics.score.total > rows[b].metrics.score.total) ? s.key : b), '' as string) : '';
+  const leaders = leadingScores(scenarios.filter((s) => rows[s.key]).map((s) => ({ key: s.key, total: rows[s.key].metrics.score.total })));
   if (!open) return null;
   return (
     <div className="absolute inset-x-4 top-28 bottom-36 z-30 flex flex-col gap-3 rounded-2xl p-3 bg-ink/80 border border-white/8" role="dialog" aria-label="Compare scenarios">
@@ -102,7 +103,7 @@ export function Compare() {
         </div>
       </div>
       <div className="grid gap-3 flex-1 min-h-0 overflow-auto" style={{ gridTemplateColumns: `repeat(${Math.max(1, scenarios.length)}, minmax(16rem, 1fr))` }}>
-        {scenarios.map((sc) => <Card key={sc.key} sc={sc} baseMs={baseMs} slipDays={slipDays} windowDays={windowDays} best={sc.key === bestKey} onMetrics={onMetrics} />)}
+        {scenarios.map((sc) => <Card key={sc.key} sc={sc} baseMs={baseMs} slipDays={slipDays} windowDays={windowDays} best={leaders.has(sc.key)} onMetrics={onMetrics} />)}
       </div>
       <p className="label normal-case tracking-normal text-white/45">Deltas (▲ green / ▼ red) compare each scenario with its own no-slip baseline. Window: {windowDays} d from landing. Base date: {fmtDateTime(baseMs)} (the mission clock).</p>
     </div>

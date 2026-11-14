@@ -43,7 +43,7 @@ export const useStore = create<State>((set) => ({
   span: url.span ?? 'month', setSpan: (span) => set({ span }),
   windowDays: url.windowDays ?? 14, setWindowDays: (windowDays) => set({ windowDays }),
   sunsetDef: url.sunsetDef ?? 'center', setSunsetDef: (sunsetDef) => set({ sunsetDef }),
-  earthMarginDeg: url.earthMarginDeg ?? 0, setEarthMargin: (earthMarginDeg) => set({ earthMarginDeg }),
+  earthMarginDeg: url.earthMarginDeg ?? 5, setEarthMargin: (earthMarginDeg) => set({ earthMarginDeg }),
   mode: url.mode ?? 'planner', setMode: (mode) => set({ mode }),
   showGrid: false, toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
   hoverSiteId: null, setHover: (hoverSiteId) => set({ hoverSiteId }),

@@ -9,7 +9,7 @@ export interface Options {
   /** Extra elevation (deg) the Earth must have above the terrain for a usable DTE link (antenna mask). */
   earthMarginDeg: number;
 }
-export const DEFAULT_OPTIONS: Options = { sunsetDef: 'center', earthMarginDeg: 0 };
+export const DEFAULT_OPTIONS: Options = { sunsetDef: 'center', earthMarginDeg: 5 };
 /** How far ahead nextEvents() searches for a transition before giving up and reporting "none found". */
 export const NEXT_EVENT_HORIZON_DAYS = 400;
 /** Assumed battery survival time (h) without sunlight; also the margin score's divisor. Not yet user-configurable. */

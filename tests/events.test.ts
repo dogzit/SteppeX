@@ -41,7 +41,7 @@ describe('historical sanity (smooth-sphere horizon)', () => {
     expect(m.window.earthFrac).toBe(0); expect(m.score.comms).toBe(0);
   });
   it('south pole: Earth visibility follows libration in latitude (both up and down within a month)', () => {
-    const m = computeMetrics({ lat: -89.5, lon: 0 }, H, Date.parse('2026-06-01T00:00:00Z'), 29.53);
+    const m = computeMetrics({ lat: -89.5, lon: 0 }, H, Date.parse('2026-06-01T00:00:00Z'), 29.53, { sunsetDef: 'center', earthMarginDeg: 0 });
     expect(m.window.earthFrac).toBeGreaterThan(0.2); expect(m.window.earthFrac).toBeLessThan(0.8);
     expect(m.score.total).toBeGreaterThan(0); expect(m.score.total).toBeLessThanOrEqual(100);
   });

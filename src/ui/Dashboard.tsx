@@ -4,6 +4,9 @@ import { useStore, useActiveSite } from '@/state/store';
 import { fmtLat, fmtLon } from '@/data/sites';
 import { fmtCountdown, fmtDate, fmtDateTime, fmtDuration, fmtPct } from './format';
 import { SCORE_WEIGHTS, MARGIN_BATTERY_HOURS, NEXT_EVENT_HORIZON_DAYS, subPoints } from '@/astro';
+import { fullNight, batteryCheck, SCORE_REASONS } from './scoreModel';
+import { LandingDates } from './LandingDates';
+import { useOptions } from '@/state/useMetrics';
 import { SkyTable } from './SkyTable';
 import { ExplorerCallouts } from './Explorer';
 import { FindWindowPanel } from './FindWindowPanel';
@@ -17,6 +20,10 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
   const { stats, live, horizon } = useMetrics();
   const [showFormula, setShowFormula] = useState(false);
   const conf = site.record ? CONF[site.record.confidence] : ['Custom input', 'text-white/70 border-white/20'];
+  const options = useOptions();
+  const night = useMemo(() => fullNight(site, horizon, timeMs, options, stats), [site, horizon, timeMs, options, stats]);
+  const [batteryHours, setBatteryHours] = useState(72);
+  const battery = batteryCheck(batteryHours, stats.window.longestDarkMs, night);
   const score = stats.score;
   const tone = score.total >= 70 ? 'text-emerald-300' : score.total >= 40 ? 'text-solar' : 'text-rose-300';
   const dte = stats.window.earthWindows.filter((w) => w.end > timeMs).slice(0, 4);
@@ -93,6 +100,17 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
             </div>
           </div>
         </section>
+        <p className="text-sm text-haze">A polar-site comparison score. Near-side sites often keep Earth in view and receive all 30 radio points; this is not a spacecraft survival prediction.</p>
+        <details><summary className="cursor-pointer text-sm">Why these score weights?</summary><ul className="text-sm text-haze space-y-1 mt-2">{SCORE_REASONS.map(([name, points, reason]) => <li key={name}><b>{name}: {points} points.</b> {reason}</li>)}</ul></details>
+        <LandingDates />
+        <section className="rounded-lg border border-white/10 p-3 space-y-2" aria-label="Night and battery estimate">
+          <div className="label">{night.current ? 'Current night: full length' : 'Next night: full length'}</div>
+          <p className="text-lg num">{night.durationMs > 0 ? `${night.atLeast ? 'At least ' : ''}${fmtDuration(night.durationMs)}` : 'No sunset found in the next 400 days'}</p>
+          <p className="text-sm text-haze">This looks past the mission end. The longest darkness within your mission is {fmtDuration(stats.window.longestDarkMs)}.</p>
+          <label className="flex flex-wrap gap-2 items-center text-sm">Battery lasts (hours without sunlight)<input className="btn w-24" aria-label="Battery lasts in hours" type="number" min={0} max={20000} value={batteryHours} onChange={(e) => setBatteryHours(Math.max(0, Number(e.target.value) || 0))} /></label>
+          <p role="status" className={`text-sm ${battery.enough ? 'text-emerald-300' : 'text-rose-300'}`}>{battery.enough ? 'Your battery time covers this estimated darkness.' : battery.unknown ? 'The full night is outside our search range. This battery time cannot be confirmed.' : `Your battery time is shorter than the estimated darkness (${Math.ceil(battery.neededHours)} hours needed).`}</p>
+          <p className="text-sm text-haze">A simple time comparison only. Temperature, power use, battery aging and heating are not modeled.</p>
+        </section>
         <section className="grid grid-cols-2 gap-x-4 gap-y-3" aria-label="Live metrics">
           <Metric label="Sun elevation" value={`${live.sun.el.toFixed(2)}°`} sub={`az ${live.sun.az.toFixed(1)}° · horizon ${live.sunHorizon.toFixed(2)}°`} tone={live.sunUp ? 'text-solar' : 'text-white/45'} />
           <Metric label="Solar disc visible" value={fmtPct(live.sunFrac)} sub={live.sunUp ? 'sunlit' : 'in shadow'} tone={live.sunUp ? 'text-solar' : 'text-white/45'} />
@@ -116,8 +134,8 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
         {!explorer && <section className="grid grid-cols-3 gap-2 items-end" aria-label="Analysis options">
           <label className="flex flex-col"><span className="label">Window · days</span><input type="number" min={1} max={400} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={windowDays} onChange={(e) => { const v = +e.target.value; if (v >= 1 && v <= 400) setWindowDays(v); }} /></label>
           <label className="flex flex-col"><span className="label">Sunset = </span><select className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={sunsetDef} onChange={(e) => setSunsetDef(e.target.value as 'center' | 'limb')}><option value="center">disc centre</option><option value="limb">last limb</option></select></label>
-          <label className="flex flex-col"><span className="label">Earth mask °</span><input type="number" min={0} max={30} step={0.5} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={earthMarginDeg} onChange={(e) => setEarthMargin(+e.target.value)} /></label>
-        </section>}
+          <label className="flex flex-col"><span className="label">Earth clearance °</span><input type="number" min={0} max={30} step={0.5} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={earthMarginDeg} onChange={(e) => setEarthMargin(+e.target.value)} /></label>
+        <p className="col-span-3 text-sm text-haze">Earth must be this many degrees above the local terrain for a direct radio link. Default: 5°. Set 0° to check geometric visibility only.</p></section>}
         <p className="label normal-case tracking-normal text-white/45 leading-snug">Horizon: {horizon.label}. {site.record?.note ?? ''} Source: {site.record?.source ?? 'user input'}.</p>
       </div>
     </aside>
