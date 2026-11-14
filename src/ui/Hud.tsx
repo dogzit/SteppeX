@@ -30,6 +30,7 @@ export function Hud() {
       <div className="glass rounded-xl px-3 py-3 pointer-events-auto flex items-center gap-2" role="group" aria-label="View">
         <button className={`btn ${view === 'globe' ? 'btn-on' : ''}`} onClick={() => setView('globe')} aria-pressed={view === 'globe'}>Globe</button>
         <button className={`btn ${view === 'polar' ? 'btn-on' : ''}`} onClick={() => setView('polar')} aria-pressed={view === 'polar'}>South pole</button>
+        <button className={`btn ${view === 'horizon' ? 'btn-on' : ''}`} onClick={() => setView('horizon')} aria-pressed={view === 'horizon'}>Lander view</button>
         <button className={`btn ${showGrid ? 'btn-on' : ''}`} onClick={toggleGrid} aria-pressed={showGrid}>Grid</button>
       </div>
     </header>

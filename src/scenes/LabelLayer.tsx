@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { SITES } from '@/data/sites';
 import { useStore } from '@/state/store';
 import { labelRegistry } from './labels';
@@ -23,7 +23,6 @@ export function LabelLayer({ siteSun, earthPos }: { siteSun: SiteSun; earthPos: 
     out.push({ id: 'earth', text: 'EARTH · direction only', color: '#5fc3ff', pos: earthPos.clone().addScaledVector(earthPos.clone().normalize(), 0.0).add({ x: 0, y: 0.17, z: 0 } as THREE.Vector3Like), occlude: false });
     return out;
   }, [siteId, hover, near, custom, siteSun, earthPos]);
-  useEffect(() => () => labelRegistry.clear(), []);
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
       {items.map((it) => (

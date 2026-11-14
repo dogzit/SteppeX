@@ -13,7 +13,7 @@ export function useMetrics() {
   const site = useActiveSite(), timeMs = useStore((s) => s.timeMs), windowDays = useStore((s) => s.windowDays), ready = useStore((s) => s.ephemReady);
   const opts = useOptions(); const hz = useHorizon(site);
   const bucket = Math.floor(timeMs / HOUR) * HOUR;
-  const stats = useMemo(() => computeMetrics({ lat: site.lat, lon: site.lon, heightKm: site.heightKm }, hz, bucket, windowDays, opts), [site, hz, bucket, windowDays, opts, ready]); // eslint-disable-line react-hooks/exhaustive-deps
+  const stats = useMemo(() => computeMetrics({ lat: site.lat, lon: site.lon, heightKm: site.heightKm }, hz, bucket, windowDays, opts), [site, hz, bucket, windowDays, opts, ready]); // hz identity changes when terrain loads // eslint-disable-line react-hooks/exhaustive-deps
   const passed = [stats.next.sunset, stats.next.sunrise, stats.next.earthset, stats.next.earthrise].some((t) => t !== null && t < timeMs);
   const fresh = useMemo(() => (passed ? computeMetrics({ lat: site.lat, lon: site.lon, heightKm: site.heightKm }, hz, timeMs, windowDays, opts) : null), [passed, site, hz, timeMs, windowDays, opts]);
   const live = useMemo(() => liveValues(site, hz, timeMs, opts), [site, hz, timeMs, opts]);

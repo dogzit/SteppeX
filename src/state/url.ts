@@ -1,5 +1,5 @@
 /** Shareable URL state: ?site=id | ?lat=..&lon=.. ; t=ISO ; view ; span ; win ; sunset ; margin ; mode */
-export interface UrlState { siteId?: string; custom?: { lat: number; lon: number } | null; timeMs?: number; view?: 'globe' | 'polar'; span?: 'day' | 'month' | 'year'; windowDays?: number; sunsetDef?: 'center' | 'limb'; earthMarginDeg?: number; mode?: 'planner' | 'explorer' }
+export interface UrlState { siteId?: string; custom?: { lat: number; lon: number } | null; timeMs?: number; view?: 'globe' | 'polar' | 'horizon'; span?: 'day' | 'month' | 'year'; windowDays?: number; sunsetDef?: 'center' | 'limb'; earthMarginDeg?: number; mode?: 'planner' | 'explorer' }
 export function readUrlState(): UrlState {
   if (typeof window === 'undefined') return {};
   const q = new URLSearchParams(window.location.search), out: UrlState = {};
@@ -7,7 +7,7 @@ export function readUrlState(): UrlState {
   const lat = num('lat'), lon = num('lon');
   if (lat !== undefined && lon !== undefined) { out.custom = { lat, lon }; out.siteId = 'custom'; } else if (q.get('site')) out.siteId = q.get('site')!;
   const t = q.get('t'); if (t) { const ms = Date.parse(t); if (!Number.isNaN(ms)) out.timeMs = ms; }
-  const view = q.get('view'); if (view === 'globe' || view === 'polar') out.view = view;
+  const view = q.get('view'); if (view === 'globe' || view === 'polar' || view === 'horizon') out.view = view;
   const span = q.get('span'); if (span === 'day' || span === 'month' || span === 'year') out.span = span;
   const win = num('win'); if (win && win > 0 && win <= 400) out.windowDays = win;
   const sd = q.get('sunset'); if (sd === 'center' || sd === 'limb') out.sunsetDef = sd;

@@ -12,3 +12,5 @@
 | 9 | Window stats + event search recomputed per simulated hour (or when an event passes); instantaneous values every frame | Keeps playback at 60 fps; bisection refinement costs ~8 ms per site |
 | 10 | Spherical fallback horizon = 0° everywhere (no dip for elevated sites) | A plateau site sees level terrain nearby; the true dip/obstruction comes from the DEM in slice 4 |
 | 11 | Timeline sampling: day 2 min, lunar month 20 min, year 2 h; window stats 10 min; event search 1 h grid + bisection to 1 s | Resolution vs. instant response; sub-step terrain flicker in the year view is documented |
+| 12 | Eye height 2 m for all horizons; 250 km sweep; 1° azimuth step | Matches Gläser's lander/rover panel height; 250 km covers 5 km massifs after curvature |
+| 13 | Planets included (astronomy-engine), 60-day rise/set search at 2 h steps | Cheap, delightful, and shows the no-atmosphere daylight visibility point |

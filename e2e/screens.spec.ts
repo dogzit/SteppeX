@@ -14,6 +14,15 @@ test('globe, dashboard, timeline', async ({ page }) => {
   await page.getByRole('button', { name: /Chandrayaan-3/ }).click();
   await page.waitForTimeout(2500);
   await page.screenshot({ path: 'docs/screens/03-site.png' });
+  await page.getByRole('button', { name: 'Lander view' }).click();
+  await expect(page.getByText('Look at Sun')).toBeVisible();
+  await page.waitForTimeout(3500);
+  await page.screenshot({ path: 'docs/screens/04-lander.png' });
+  await page.getByRole('button', { name: 'Look at Earth' }).click();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: 'docs/screens/05-lander-earth.png' });
+  await page.getByRole('button', { name: 'Globe' }).click();
+  await page.waitForTimeout(2500);
   await page.mouse.click(760, 420);
   await page.waitForTimeout(1500);
   await expect(page.getByText('Custom site')).toBeVisible();

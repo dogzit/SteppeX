@@ -33,3 +33,17 @@ Topocentric azimuth/elevation of the **Sun** and the **Earth** as seen from a po
 
 ## Not covered by this test
 Terrain horizon (validated separately against the DEM in `tests/horizon.test.ts`), event timing (derived from these angles by bisection), hardware constraints.
+
+## Terrain illumination vs. Gläser et al. (2018)
+Our 2024–2025 hourly sweep with the LOLA-derived horizon (eye 2 m) against the 20-year, 20 m/px study (surface level unless noted; Planet. Space Sci., NTRS 20170007365, Table 1). Different DEM resolution, period and eye height, so agreement within a few percentage points is the expectation, not identity.
+
+| Site | Avg illumination % (ours) | published | Solar visibility % (ours) | published | Longest shadow h (ours) | published | DEM used |
+|---|---|---|---|---|---|---|---|
+| Connecting Ridge C1 | 76.8 | 76 (88 at 2 m) | 82.5 | 81.3 (92.1 at 2 m) | 232 | 268 | LOLA DEM 40 m/px (<85°S), 240 m/px (75–85°S), 1.9 km/px beyond |
+| Connecting Ridge C2 | 66.2 | 75.6 | 72.3 | 80.6 | 392 | 166 | LOLA DEM 40 m/px (<85°S), 240 m/px (75–85°S), 1.9 km/px beyond |
+| Shackleton rim S | 83.4 | 81 | 88.2 | 85.5 | 155 | 221 | LOLA DEM 40 m/px (<85°S), 240 m/px (75–85°S), 1.9 km/px beyond |
+| Whipple rim (north) | 43.9 | 82.9 | 48.9 | 88.5 | 436 | 101 | LOLA DEM 240 m/px polar tile, 1.9 km/px beyond 75° |
+
+Avg illumination = mean visible fraction of the solar disc; solar visibility = fraction of time any part of the disc is above the terrain. Regenerate with `npm run validate:horizon`.
+
+**Whipple (north) note.** At the published point our 240 m/px profile gives 43.9 %, but the best pixel within ±720 m gives 77.0 % (scripts/dev/check-whipple.ts). The published 82.9 % comes from a 20 m/px DEM where the rim crest is resolved. Conclusion: at the poles a few hundred metres of position change illumination by tens of percent, so (a) our south-pole numbers use the 40 m/px tile, (b) coarse-tile results (north pole, custom pins) are labelled as such in the app, and (c) the app's horizon profile should be read as "this pixel", not "this region".

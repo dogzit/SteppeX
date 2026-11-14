@@ -1,0 +1,11 @@
+import { chromium } from '@playwright/test';
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+p.on('pageerror', (e) => console.log('[pageerror]', e.message.slice(0, 300)));
+p.on('console', (m) => { if (m.type() === 'error') console.log('[console]', m.text().slice(0, 200)); });
+await p.goto('http://localhost:4173/?site=artemis-cr&t=2026-11-20T12:00Z&view=horizon'); await p.waitForTimeout(4000);
+const panel = p.locator('aside[aria-label="Power and communications dashboard"]');
+await panel.evaluate((el) => { el.querySelector('.overflow-y-auto').scrollTop = 9999; });
+await p.waitForTimeout(500);
+await p.screenshot({ path: 'docs/screens/06-sky-table.png' });
+console.log((await p.locator('section[aria-label="Sky from the site"]').innerText()).slice(0, 900));
+await b.close();

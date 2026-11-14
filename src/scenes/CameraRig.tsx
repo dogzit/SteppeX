@@ -22,6 +22,7 @@ export function CameraRig() {
     const dist = view === 'polar' ? 3.6 : Math.min(Math.max(camera.position.length(), 2.2), 3.4);
     let dir: THREE.Vector3, up: THREE.Vector3;
     if (view === 'polar') { dir = new THREE.Vector3(0, -1, 0); up = new THREE.Vector3(1, 0, 0); }
+    else if (view === 'horizon') return;
     else {
       dir = latLonToThree(site.lat, site.lon, 1);
       // keep polar sites readable: tilt the camera 25° toward the equator so the limb is visible

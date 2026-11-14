@@ -11,7 +11,10 @@
     "typecheck": "tsc -b",
     "data": "tsx scripts/build-data.ts",
     "data:ephem": "tsx scripts/build-ephemeris.ts",
-    "data:textures": "tsx scripts/build-normalmap.ts && python3 scripts/build-textures.py"
+    "data:textures": "tsx scripts/build-normalmap.ts && python3 scripts/build-textures.py",
+    "data:horizons": "tsx scripts/build-horizons.ts",
+    "data:tiles": "tsx scripts/build-dem-tiles.ts",
+    "validate:horizon": "tsx scripts/validate-horizon.ts"
   },
   "keywords": [],
   "author": "",

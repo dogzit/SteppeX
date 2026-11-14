@@ -4,6 +4,7 @@ import { useStore, useActiveSite } from '@/state/store';
 import { fmtLat, fmtLon } from '@/data/sites';
 import { fmtCountdown, fmtDateTime, fmtDuration, fmtPct } from './format';
 import { SCORE_WEIGHTS } from '@/astro';
+import { SkyTable } from './SkyTable';
 
 const CONF: Record<string, [string, string]> = { high: ['Verified', 'text-emerald-300 border-emerald-400/30'], medium: ['Published · limited precision', 'text-sky-300 border-sky-400/30'], approx: ['Approximate region', 'text-rose-300 border-rose-400/30'] };
 
@@ -61,6 +62,7 @@ export function Dashboard() {
             ))}</ul>
           )}
         </section>
+        <SkyTable />
         <section className="grid grid-cols-3 gap-2 items-end" aria-label="Analysis options">
           <label className="flex flex-col"><span className="label">Window · days</span><input type="number" min={1} max={400} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={windowDays} onChange={(e) => { const v = +e.target.value; if (v >= 1 && v <= 400) setWindowDays(v); }} /></label>
           <label className="flex flex-col"><span className="label">Sunset = </span><select className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={sunsetDef} onChange={(e) => setSunsetDef(e.target.value as 'center' | 'limb')}><option value="center">disc centre</option><option value="limb">last limb</option></select></label>

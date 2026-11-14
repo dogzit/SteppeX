@@ -5,7 +5,7 @@ import { readUrlState, writeUrlState } from './url';
 import { SYNODIC_MONTH_DAYS } from '@/astro';
 
 export interface CustomSite { lat: number; lon: number; heightKm?: number }
-export type ViewMode = 'globe' | 'polar';
+export type ViewMode = 'globe' | 'polar' | 'horizon';
 export type Span = 'day' | 'month' | 'year';
 export type Mode = 'planner' | 'explorer';
 export interface ActiveSite { id: string; name: string; lat: number; lon: number; heightKm: number; record?: SiteRecord }
@@ -25,7 +25,7 @@ interface State {
   mode: Mode; setMode: (m: Mode) => void;
   showGrid: boolean; toggleGrid: () => void;
   hoverSiteId: string | null; setHover: (id: string | null) => void;
-  flyToken: number; zoomNear: boolean; ephemReady: boolean;
+  flyToken: number; zoomNear: boolean; ephemReady: boolean; horizonsReady: boolean;
 }
 
 const url = readUrlState();
@@ -43,7 +43,7 @@ export const useStore = create<State>((set) => ({
   mode: url.mode ?? 'planner', setMode: (mode) => set({ mode }),
   showGrid: false, toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
   hoverSiteId: null, setHover: (hoverSiteId) => set({ hoverSiteId }),
-  flyToken: 0, zoomNear: false, ephemReady: false,
+  flyToken: 0, zoomNear: false, ephemReady: false, horizonsReady: false,
 }));
 
 // URL sync (throttled)
