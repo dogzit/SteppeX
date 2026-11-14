@@ -70,6 +70,14 @@ Source layout: `src/astro` (pure TypeScript engine, no DOM), `src/scenes` (react
 - Terrain illumination at the Gläser et al. (2018) south-pole reference points reproduced within 1–9 percentage points; the north-pole gap is explained there (crest resolution).
 - No refraction, no twilight: the Moon has no atmosphere. Everything else that is not modelled is listed in the in-app Methodology panel and in [LIMITATIONS.md](LIMITATIONS.md).
 
+## Use of AI
+
+NASA Space Apps requires teams to say where and how AI was used.
+
+- **Original build:** [TEAM TO FILL IN: which AI tools were used, and for which parts of the code, text, data scripts and images.]
+- **Finishing pass (branch `finisher/polish`):** fixes, tests and documentation edits were made with Claude (Anthropic) via Claude Code and reviewed by the team. Each of those commits carries a `Co-Authored-By: Claude` line. This includes the event-time, pole-horizon, georeferencing and URL-validation fixes, the regression tests, the layout changes and the independent accuracy audit summarised in VALIDATION.md.
+- Images: the Moon and Earth textures are NASA imagery (see below), not AI-generated. The only AI-made graphic is the favicon (`public/favicon.svg`, a three-circle crescent written as SVG code by Claude). Do not use AI-generated images in the demo video without the visible "AI-generated" watermark Space Apps requires.
+
 ## Credits and data
 
 NASA/GSFC/Arizona State University LRO **LOLA** GDR (PDS Geosciences Node) · NASA **SVS** CGI Moon Kit (LROC WAC colour) · NASA **Blue Marble** · NASA/JPL **Horizons** · LROC / Wagner et al. 2017 (Apollo coordinates) · ISRO, CNSA, JAXA, Intuitive Machines, Firefly Aerospace, NASA LRO (recent landings) · LPSC 2024 #1695 (Artemis III candidate points) · Gläser et al. 2018 (polar illumination) · [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT) · three.js, react-three-fiber, drei, D3, Zustand, Tailwind, Vite.
