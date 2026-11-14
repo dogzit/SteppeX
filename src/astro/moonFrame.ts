@@ -57,12 +57,16 @@ export interface MoonState {
   matrix: Mat3;
 }
 
-/** Geometric (no light-time/aberration) Sun and Earth vectors from the Moon's centre in the ME frame. */
+/**
+ * Sun and Earth vectors from the Moon's centre in the ME frame. Light-time is applied by astronomy-engine; the Sun also gets
+ * annual aberration (computed for the geocentre; the Moon's heliocentric velocity differs by ~1 km/s, i.e. ~0.0007°).
+ * Aberration halves the Sun residual vs JPL Horizons (max 0.0090° -> ~0.0045°, accuracy audit Nov 2026).
+ */
 export function moonState(date: FlexibleDateTime): MoonState {
   const time = MakeTime(date);
   const m = moonBodyFixedMatrix(time);
   const moon = GeoMoon(time);                     // geocentric Moon, EQJ, AU
-  const sun = GeoVector(Body.Sun, time, false);    // geocentric Sun, EQJ, AU
+  const sun = GeoVector(Body.Sun, time, true);     // geocentric Sun, EQJ, AU, light-time + aberration
   const earthV: Vec3 = [-moon.x * AU_KM, -moon.y * AU_KM, -moon.z * AU_KM];
   const sunV: Vec3 = [(sun.x - moon.x) * AU_KM, (sun.y - moon.y) * AU_KM, (sun.z - moon.z) * AU_KM];
   return { time, sun: apply(m, sunV), earth: apply(m, earthV), matrix: m };
