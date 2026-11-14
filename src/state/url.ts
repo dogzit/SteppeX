@@ -1,5 +1,11 @@
-/** Shareable URL state: ?site=id | ?lat=..&lon=.. ; t=ISO ; view ; span ; win ; sunset ; margin ; mode ; fwsun ; fwearth ; fwstart ; fwend */
-export interface UrlState { siteId?: string; custom?: { lat: number; lon: number } | null; timeMs?: number; view?: 'globe' | 'polar' | 'horizon'; span?: 'day' | 'month' | 'year'; windowDays?: number; sunsetDef?: 'center' | 'limb'; earthMarginDeg?: number; mode?: 'planner' | 'explorer'; fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number; fwSelEnd?: number }
+import { formatCompare, parseCompare, type CompareUrlState } from './compareLink';
+/** Shareable URL state: ?site=id | ?lat=..&lon=.. ; t=ISO ; view ; span ; win ; sunset ; margin ; mode ; fwsun ; fwearth ; fwstart ; fwend ; cmp ; slip */
+export type { CompareScenarioUrl, CompareUrlState } from './compareLink';
+export interface UrlState { siteId?: string; custom?: { lat: number; lon: number } | null; timeMs?: number; view?: 'globe' | 'polar' | 'horizon'; span?: 'day' | 'month' | 'year'; windowDays?: number; sunsetDef?: 'center' | 'limb'; earthMarginDeg?: number; mode?: 'planner' | 'explorer'; fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number; fwSelEnd?: number; compare?: CompareUrlState }
+
+/** Set by the compare store so a link can carry its scenarios without this module importing it. */
+let compareSnapshot: () => CompareUrlState | undefined = () => undefined;
+export function registerCompareSnapshot(fn: () => CompareUrlState | undefined) { compareSnapshot = fn; }
 export function readUrlState(): UrlState {
   if (typeof window === 'undefined') return {};
   const q = new URLSearchParams(window.location.search), out: UrlState = {};
@@ -17,6 +23,7 @@ export function readUrlState(): UrlState {
   const fwearth = num('fwearth'); if (fwearth !== undefined && fwearth >= 0) out.fwEarthHours = fwearth;
   const fwstart = q.get('fwstart'), fwend = q.get('fwend');
   if (fwstart && fwend) { const a = Date.parse(fwstart), b = Date.parse(fwend); if (!Number.isNaN(a) && !Number.isNaN(b)) { out.fwSelStart = a; out.fwSelEnd = b; } }
+  out.compare = parseCompare(q.get('cmp'), q.get('slip'));
   return out;
 }
 export function writeUrlState(s: Required<Pick<UrlState, 'siteId' | 'custom' | 'timeMs' | 'view' | 'span' | 'windowDays' | 'sunsetDef' | 'earthMarginDeg' | 'mode'>> & { fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number | null; fwSelEnd?: number | null }) {
@@ -36,6 +43,14 @@ export function writeUrlState(s: Required<Pick<UrlState, 'siteId' | 'custom' | '
     q.set('fwstart', new Date(s.fwSelStart).toISOString());
     q.set('fwend', new Date(s.fwSelEnd).toISOString());
   }
-  const url = `${window.location.pathname}?${q.toString()}`;
+  // Appended raw rather than through URLSearchParams: the compare grammar is query-safe already,
+  // and encoding it would also re-encode every other parameter, changing the shape of old links.
+  let qs = q.toString();
+  const cmp = compareSnapshot();
+  if (cmp && cmp.scenarios.length) {
+    qs += `&cmp=${formatCompare(cmp)}`;
+    if (cmp.slipDays !== 0) qs += `&slip=${cmp.slipDays}`;
+  }
+  const url = `${window.location.pathname}?${qs}`;
   if (url !== window.location.pathname + window.location.search) window.history.replaceState(null, '', url);
 }
