@@ -13,6 +13,7 @@
 10. **Time range**: the precomputed table covers 2023–2031; other dates fall back to exact ephemeris (slower, still correct). Event searches stop at 400 days (60 days for planets).
 11. **Timeline sampling**: 2 min / 20 min / 2 h for day / month / year views; terrain flicker shorter than the step can be missed in the year view.
 12. **Compact layouts** use Sites/Details drawers below 1280 px and have been checked at 390 × 844 and 880 × 900. Dedicated kiosk and short landscape-screen layouts remain unfinished.
+13. **Most polar library horizons predate the georeferencing fix.** The half-pixel fix for the LOLA polar tiles (VALIDATION.md, independent audit) reached only the "Lunar south pole" profile and custom pins. The other 9 library profiles built on polar tiles (5 at 40 m/px, 4 at 240 m/px) still use the old positions: about 20 m off on 40 m data, about 120 m on 240 m data. Rebuilding them needs the full-resolution LOLA DEMs, which are not in the repo, then `npm run data:horizons`. The remaining 21 profiles use the 1.9 km/px global grid, which the fix did not change.
 
 ## Next steps
 - South-pole **illumination heatmap** (fraction of a chosen month in sunlight / Earth view) from a build-time horizon grid, PSR overlay and a "peak of eternal light" finder.
