@@ -353,7 +353,9 @@ html, body, #root { background: var(--scene-background); }
 @media (max-width: 639px) { .graticule-label { font-size: 9px; } }
 
 /* Anchored overlays: the disc keeps the middle of the stage whatever the panels below say. */
-.polar-map-controls { position: absolute; top: 172px; left: 50%; transform: translateX(-50%); max-width: calc(100vw - 24px); }
+/* width: max-content, because with left: 50% an absolute box may only shrink to half the screen; at 390 px that
+   stacked the buttons into a tall column under the disc. z-index: 1 keeps them tappable wherever they still meet it. */
+.polar-map-controls { position: absolute; top: 172px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 24px); z-index: 1; }
 .polar-bottom {
   position: absolute; left: 50%; transform: translateX(-50%); bottom: 168px;
   display: flex; flex-direction: column; align-items: center; gap: 6px; width: min(44rem, 94vw);
@@ -362,6 +364,8 @@ html, body, #root { background: var(--scene-background); }
 .polar-note { position: absolute; left: 50%; transform: translateX(-50%); bottom: 250px; }
 .polar-peaks { top: 244px; }
 @media (max-width: 1279px) { .polar-map-controls { top: 160px; } .polar-bottom { bottom: 220px; } }
+/* Below ~854 px the header's toolbar wraps to a second row (bottom at 195 px), which covered this panel's top row. */
+@media (min-width: 640px) and (max-width: 879px) { .polar-map-controls { top: 208px; } }
 @media (max-width: 639px) {
   .polar-map-controls { top: 78px; }
   .polar-bottom { bottom: 86px; width: calc(100vw - 16px); gap: 6px; }

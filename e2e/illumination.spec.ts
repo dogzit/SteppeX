@@ -65,3 +65,16 @@ test('the sunlight map stays off the cold-load path', async ({ page }) => {
   await page.waitForTimeout(3500);
   expect(asked, 'the grid must not load until someone opens it').toHaveLength(0);
 });
+
+// The map's buttons used to sit under the disc at phone width, and under the two-row header at 640-853 px.
+// Playwright refuses to click an element that something else covers, so each click here checks that.
+for (const [width, height] of [[390, 844], [720, 900]]) test(`${width} px: the sunlight map buttons can be tapped`, async ({ page }) => {
+  await page.setViewportSize({ width, height });
+  await page.goto(start);
+  await page.getByRole('button', { name: 'Sunlight map' }).click();
+  await expect(page.locator('.polar-heat')).toBeVisible();
+  await page.getByRole('button', { name: 'This month' }).click();
+  await expect(page.getByText(/Share of November 20\d\d in sunlight/)).toBeVisible();
+  await page.getByRole('button', { name: 'Best lit places' }).click();
+  await expect(page.getByRole('region', { name: 'Best lit places' })).toBeVisible();
+});
