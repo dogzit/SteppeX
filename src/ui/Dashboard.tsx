@@ -64,7 +64,7 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
       </div>
 
       <div ref={scroll} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
-      <p className="text-sm leading-relaxed" aria-label="Site summary">{siteSummary(stats, night)}</p>
+      <p className="text-sm leading-relaxed" aria-label="Site summary">{siteSummary(stats, night, { simple: explorer })}</p>
 
         {live.sun.el > 0 && live.sunFrac === 0 && <p className="text-sm text-solar">☾ Sun is up, but a mountain is blocking it. This site is in shadow.</p>}
         <section aria-label="Site score" className="space-y-2">

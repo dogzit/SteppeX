@@ -16,3 +16,13 @@ it('does not invent a zero-length night when no sunset was found', () => {
   expect(summary).toContain('No sunset was found');
   expect(summary).not.toContain('night of');
 });
+
+it('Simple mode ends the summary at the Earth percentage; Expert keeps the radio points', () => {
+  const m = computeMetrics({ lat: 0, lon: 0 }, SPHERE_HORIZON, Date.parse('2026-11-14T09:04Z'));
+  const night = { start: null, end: null, durationMs: 0, current: false, atLeast: false };
+  const simple = siteSummary(m, night, { simple: true }), expert = siteSummary(m, night);
+  expect(simple).toMatch(/Earth is visible \d+% of this date range\.$/);
+  expect(simple).not.toContain('radio points');
+  expect(expert).toContain('of 30 radio points.');
+  expect(expert.startsWith(simple.slice(0, -1))).toBe(true);
+});
