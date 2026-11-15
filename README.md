@@ -75,8 +75,8 @@ Source layout: `src/astro` (pure TypeScript engine, no DOM), `src/scenes` (react
 NASA Space Apps requires teams to say where and how AI was used.
 
 - **Original build:** [TEAM TO FILL IN: which AI tools were used, and for which parts of the code, text, data scripts and images.]
-- **Finishing pass (branch `finisher/polish`):** fixes, tests and documentation edits were made with Claude (Anthropic) via Claude Code and reviewed by the team. Each of those commits carries a `Co-Authored-By: Claude` line. This includes the event-time, pole-horizon, georeferencing and URL-validation fixes, the regression tests, the layout changes and the independent accuracy audit summarised in VALIDATION.md.
-- Images: the Moon and Earth textures are NASA imagery (see below), not AI-generated. The only AI-made graphic is the favicon (`public/favicon.svg`, a three-circle crescent written as SVG code by Claude). Do not use AI-generated images in the demo video without the visible "AI-generated" watermark Space Apps requires.
+- **Accuracy pass (branch `accuracy-fixes`):** fixes, tests and documentation edits were made with Claude (Anthropic) via Claude Code and reviewed by the team. Each of those commits carries a `Co-Authored-By: Claude` line. This includes the event-time, pole-horizon, georeferencing, aberration and URL-validation fixes, the regression tests and the independent accuracy audit summarised in VALIDATION.md.
+- Images: the Moon and Earth textures are NASA imagery (see below), not AI-generated. Do not use AI-generated images in the demo video without the visible "AI-generated" watermark Space Apps requires.
 
 ## Credits and data
 
