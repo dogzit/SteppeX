@@ -40,6 +40,7 @@ A separate reference built from JPL DE421 positions and NAIF's lunar orientation
 - 14-day dashboard metrics, 11 sites × 8 dates: within 0.2 percentage points.
 - Horizon sweep vs an independent implementation on the same tile: identical.
 - Found and fixed: event refinement could return the far edge of an hour bracket (up to ~1 h late) when the table and the exact ephemeris disagreed by a hair at a grazing crossing; the horizon sweep was degenerate at exactly ±90° latitude; windows still open at the end of a period were reported one step too long. Regression tests: tests/audit-regressions.test.ts.
+- Found and partly fixed: the LOLA polar tiles were placed half a pixel off (the PDS label's \`*_PROJECTION_OFFSET\` is already the 0-based pole index; the code subtracted another 0.5). The fix reached only the "Lunar south pole" profile and custom pins. The other 9 library profiles built on polar tiles (5 at 40 m/px, 4 at 240 m/px) still use the old positions: about 20 m off on 40 m data, about 120 m on 240 m data. That includes all four sites in the Gläser table below. Rebuilding them needs the full-resolution LOLA DEMs, which are not in the repo, then \`npm run data:horizons\`. The remaining 21 profiles use the 1.9 km/px global grid, which the fix did not change; two of them (Chandrayaan-3, Luna-25) reach polar-tile terrain only 165 km or more from the site.
 - Topocentric parallax of the Earth (up to 0.26°) is modelled; the test would fail without it.
 - No refraction is applied on either side (the Moon has no atmosphere).
 
