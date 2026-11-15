@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { useMemo } from 'react';
 import { SITE_BY_ID, type SiteRecord } from '@/data/sites';
 import { readUrlState, writeUrlState } from './url';
+import { clampTime, normLon } from './urlParse';
 import { SYNODIC_MONTH_DAYS } from '@/astro';
 
 export interface CustomSite { lat: number; lon: number; heightKm?: number }
@@ -34,12 +35,12 @@ interface State {
 
 const url = readUrlState();
 export const useStore = create<State>((set) => ({
-  timeMs: url.timeMs ?? Date.now(), setTime: (timeMs) => set({ timeMs }), stepTime: (d) => set((s) => ({ timeMs: s.timeMs + d })),
+  timeMs: url.timeMs ?? Date.now(), setTime: (timeMs) => set({ timeMs: clampTime(timeMs) }), stepTime: (d) => set((s) => ({ timeMs: clampTime(s.timeMs + d) })),
   playing: false, speed: 3600, togglePlay: () => set((s) => ({ playing: !s.playing })), setSpeed: (speed) => set({ speed }),
   siteId: url.siteId ?? 'artemis-cr', custom: url.custom ?? null, prevSiteId: 'artemis-cr',
   selectSite: (siteId) => set((s) => ({ siteId, flyToken: s.flyToken + 1 })),
   // Dropping a pin remembers where you were, so removing it can put you back.
-  setCustom: (custom) => set((s) => ({ custom, siteId: 'custom', prevSiteId: s.siteId === 'custom' ? s.prevSiteId : s.siteId, flyToken: s.flyToken + 1 })),
+  setCustom: (custom) => set((s) => ({ custom: { ...custom, lat: Math.max(-90, Math.min(90, custom.lat)), lon: normLon(custom.lon) }, siteId: 'custom', prevSiteId: s.siteId === 'custom' ? s.prevSiteId : s.siteId, flyToken: s.flyToken + 1 })),
   clearCustom: () => set((s) => ({ custom: null, siteId: s.prevSiteId, flyToken: s.flyToken + 1 })),
   view: url.view ?? 'globe', setView: (view) => set((s) => ({ view, flyToken: s.flyToken + 1 })),
   span: url.span ?? 'month', setSpan: (span) => set({ span }),

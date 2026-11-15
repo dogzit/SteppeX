@@ -1,30 +1,18 @@
-import { formatCompare, parseCompare, type CompareUrlState } from './compareLink';
 /** Shareable URL state: ?site=id | ?lat=..&lon=.. ; t=ISO ; view ; span ; win ; sunset ; margin ; mode ; fwsun ; fwearth ; fwstart ; fwend ; cmp ; slip */
+import { formatCompare, parseCompare, type CompareUrlState } from './compareLink';
+import { parseUrlState, type UrlState as ParsedUrlState } from './urlParse';
+export { parseUrlState, clampTime, normLon, TIME_MIN_MS, TIME_MAX_MS } from './urlParse';
 export type { CompareScenarioUrl, CompareUrlState } from './compareLink';
-export interface UrlState { siteId?: string; custom?: { lat: number; lon: number } | null; timeMs?: number; view?: 'globe' | 'polar' | 'horizon'; span?: 'day' | 'month' | 'year'; windowDays?: number; sunsetDef?: 'center' | 'limb'; earthMarginDeg?: number; mode?: 'planner' | 'explorer'; fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number; fwSelEnd?: number; compare?: CompareUrlState }
+/** The validated fields (urlParse.ts) plus the compare scenarios (compareLink.ts); both parsers are pure and unit-tested. */
+export interface UrlState extends ParsedUrlState { compare?: CompareUrlState }
 
 /** Set by the compare store so a link can carry its scenarios without this module importing it. */
 let compareSnapshot: () => CompareUrlState | undefined = () => undefined;
 export function registerCompareSnapshot(fn: () => CompareUrlState | undefined) { compareSnapshot = fn; }
 export function readUrlState(): UrlState {
   if (typeof window === 'undefined') return {};
-  const q = new URLSearchParams(window.location.search), out: UrlState = {};
-  const num = (k: string) => { const v = q.get(k); return v !== null && v !== '' && !Number.isNaN(+v) ? +v : undefined; };
-  const lat = num('lat'), lon = num('lon');
-  if (lat !== undefined && lon !== undefined) { out.custom = { lat, lon }; out.siteId = 'custom'; } else if (q.get('site')) out.siteId = q.get('site')!;
-  const t = q.get('t'); if (t) { const ms = Date.parse(t); if (!Number.isNaN(ms)) out.timeMs = ms; }
-  const view = q.get('view'); if (view === 'globe' || view === 'polar' || view === 'horizon') out.view = view;
-  const span = q.get('span'); if (span === 'day' || span === 'month' || span === 'year') out.span = span;
-  const win = num('win'); if (win && win > 0 && win <= 400) out.windowDays = win;
-  const sd = q.get('sunset'); if (sd === 'center' || sd === 'limb') out.sunsetDef = sd;
-  const m = num('margin'); if (m !== undefined) out.earthMarginDeg = m;
-  const mode = q.get('mode'); if (mode === 'planner' || mode === 'explorer') out.mode = mode;
-  const fwsun = num('fwsun'); if (fwsun !== undefined && fwsun > 0) out.fwSunHours = fwsun;
-  const fwearth = num('fwearth'); if (fwearth !== undefined && fwearth >= 0) out.fwEarthHours = fwearth;
-  const fwstart = q.get('fwstart'), fwend = q.get('fwend');
-  if (fwstart && fwend) { const a = Date.parse(fwstart), b = Date.parse(fwend); if (!Number.isNaN(a) && !Number.isNaN(b)) { out.fwSelStart = a; out.fwSelEnd = b; } }
-  out.compare = parseCompare(q.get('cmp'), q.get('slip'));
-  return out;
+  const q = new URLSearchParams(window.location.search);
+  return { ...parseUrlState(window.location.search), compare: parseCompare(q.get('cmp'), q.get('slip')) };
 }
 export function writeUrlState(s: Required<Pick<UrlState, 'siteId' | 'custom' | 'timeMs' | 'view' | 'span' | 'windowDays' | 'sunsetDef' | 'earthMarginDeg' | 'mode'>> & { fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number | null; fwSelEnd?: number | null }) {
   const q = new URLSearchParams();

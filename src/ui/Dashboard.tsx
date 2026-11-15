@@ -67,7 +67,7 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
       </div>
 
       <div ref={scroll} className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-3">
-      <p className="text-sm leading-relaxed" aria-label="Site summary">{siteSummary(stats, night)}</p>
+      <p className="text-sm leading-relaxed" aria-label="Site summary">{siteSummary(stats, night, { simple: explorer })}</p>
 
         {live.sun.el > 0 && live.sunFrac === 0 && <p className="text-sm text-solar">☾ Sun is up, but a mountain is blocking it. This site is in shadow.</p>}
         <section aria-label="Site score" className="space-y-2">
@@ -152,8 +152,8 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
           <label className="flex flex-col"><span className="label">Count sunset when</span><select className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={sunsetDef} onChange={(e) => setSunsetDef(e.target.value as 'center' | 'limb')}><option value="center">Half the Sun has set</option><option value="limb">The whole Sun has set</option></select></label>
           <label className="flex flex-col"><span className="label">Earth clearance °</span><input type="number" min={0} max={30} step={0.5} className="num bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm" value={earthMarginDeg} onChange={(e) => setEarthMargin(+e.target.value)} /></label>
         <p className="col-span-3 text-sm text-haze">Earth must be this many degrees above the local terrain for a direct radio link. Default: 5°. Set 0° to check geometric visibility only.</p></section></details>}
-        <ExplorerCallouts />
         </div>
+        <ExplorerCallouts />
         <p className="text-xs text-haze" role="status">{terrainSummary(horizon)}</p>
         <details><summary className="label cursor-pointer">Location notes and data sources</summary><p className="text-xs text-haze mt-2">{site.record?.note ?? 'You chose this location.'} Location source: {site.record?.source ?? 'Your coordinates'}. {horizon.source === 'lola' ? horizon.label : ''}</p></details>
       </div>

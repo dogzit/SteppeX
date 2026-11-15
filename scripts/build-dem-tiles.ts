@@ -14,7 +14,8 @@ for (const [base, f, name] of [['.cache/ldem_75s_240m', 3, 'south'], ['.cache/ld
   const d = readDem(base); const { out, W, H } = downsample(d.data, d.width, d.height, f);
   const scaleM = +d.label.MAP_SCALE * f;
   writeFileSync(`public/data/dem_${name}.bin`, Buffer.from(out.buffer));
-  tiles.push({ name, file: `dem_${name}.bin`, proj: 'polar', centerLat: +d.label.CENTER_LATITUDE, width: W, height: H, scale: d.scale, scaleM, lineOffset: (+d.label.LINE_PROJECTION_OFFSET - 0.5) / f, sampleOffset: (+d.label.SAMPLE_PROJECTION_OFFSET - 0.5) / f, label: `LOLA DEM ${scaleM} m/px (downsampled polar tile)` });
+  // Tile px j averages source px f*j..f*j+f-1, so it is centred on source f*j+(f-1)/2.
+  tiles.push({ name, file: `dem_${name}.bin`, proj: 'polar', centerLat: +d.label.CENTER_LATITUDE, width: W, height: H, scale: d.scale, scaleM, lineOffset: (+d.label.LINE_PROJECTION_OFFSET - (f - 1) / 2) / f, sampleOffset: (+d.label.SAMPLE_PROJECTION_OFFSET - (f - 1) / 2) / f, label: `LOLA DEM ${scaleM} m/px (downsampled polar tile)` });
   console.log(name, W, H, (out.byteLength / 1e6).toFixed(1), 'MB');
 }
 {

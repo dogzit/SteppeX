@@ -5,7 +5,7 @@ import { useStore, useActiveSite, SPAN_MS, SPEEDS, type Span } from '@/state/sto
 import { useOptions } from '@/state/useMetrics';
 import { useHorizon } from '@/state/useHorizon';
 import { useViewportWidth } from './useViewport';
-import { fmtDate, fmtDateTime, fmtDuration, fmtPct } from './format';
+import { fmtDate, fmtDateTime, fmtDuration, fmtDurationShort, fmtPct } from './format';
 
 /** "1 day" / "29.5 days" / "365.3 days" — derived from the actual span duration in ms, not hardcoded. */
 function fmtSpanDays(days: number): string {
@@ -13,6 +13,12 @@ function fmtSpanDays(days: number): string {
   return `${days.toFixed(1)} days`;
 }
 import { SYNODIC_MONTH_DAYS } from '@/astro';
+
+/** Playback speed in plain words: 3600 -> "1 hour per second", 21600 -> "6 hours per second". */
+function speedLabel(s: number): string {
+  const [n, unit] = s < 3600 ? [s / 60, 'minute'] : s < 86400 ? [s / 3600, 'hour'] : [s / 86400, 'day'];
+  return `${n} ${unit}${n === 1 ? '' : 's'} per second`;
+}
 
 const STEP: Record<Span, number> = { day: 120_000, month: 1200_000, year: 7200_000 };
 const LANES = [
@@ -53,7 +59,11 @@ export function Timeline() {
   // different intervals by design, not a computation bug (verified: both read the same siteSeries/
   // visibility/windows pipeline and the same useOptions()/useHorizon() values).
   const timelineHeading = `Timeline · ${fmtSpanDays(spanMs / 86400_000)} · ${fmtDate(start)} → ${fmtDate(start + spanMs)}`;
-  const statLine = span === 'day' ? `Sun ${fmtPct(data.sunFrac)}` : `sun ${fmtPct(data.sunFrac)} · earth ${fmtPct(data.earthFrac)} · both ${fmtPct(data.bothFrac)} · longest sun ${fmtDuration(Math.max(0, ...data.sun.map((w) => w.end - w.start)))}`;
+  const longestSunMs = Math.max(0, ...data.sun.map((w) => w.end - w.start));
+  const statFull = span === 'day' ? `Sunlight ${fmtPct(data.sunFrac)}` : `Sunlight ${fmtPct(data.sunFrac)} · Earth visible ${fmtPct(data.earthFrac)} · Both ${fmtPct(data.bothFrac)} · Longest sunlight ${fmtDuration(longestSunMs)}`;
+  // Short wording on screen, full wording in the tooltip. The full line is ~570 px of monospace text and
+  // the header row has only ~490 px at 1440, so it wrapped to two lines and made the footer 20 px taller.
+  const statLine = span === 'day' ? statFull : `Sunlight ${fmtPct(data.sunFrac)} · Earth ${fmtPct(data.earthFrac)} · Both ${fmtPct(data.bothFrac)} · Longest sunlight ${fmtDurationShort(longestSunMs)}`;
   const summary = `${timelineHeading}. ${site.name}: sunlit ${fmtPct(data.sunFrac)}, Earth visible ${fmtPct(data.earthFrac)}, both ${fmtPct(data.bothFrac)}.`
     + (fwSelStart !== null && fwSelEnd !== null ? ` Highlighted mission window: ${fmtDateTime(fwSelStart)} to ${fmtDateTime(fwSelEnd)}.` : '');
 
@@ -68,13 +78,13 @@ export function Timeline() {
   return (
     <footer className="app-timeline absolute left-4 right-4 bottom-3 z-20 glass rounded-xl px-3 py-2 flex items-center gap-3" aria-label="Timeline and time controls">
       <div className="flex items-center gap-1 shrink-0" role="group" aria-label="Transport">
-        <button className="btn num" title="Go back about 29.5 Earth days" aria-label="Back one lunar day" onClick={() => stepTime(-SYNODIC_MONTH_DAYS * 86400_000)}>«☾</button>
+        <button className="btn whitespace-nowrap" title="Go back about 29.5 Earth days" aria-label="Back one lunar day" onClick={() => stepTime(-SYNODIC_MONTH_DAYS * 86400_000)}>−1 lunar day</button>
         <button className="btn num" title="Back one Earth day" aria-label="Back one day" onClick={() => stepTime(-86400_000)}>−1d</button>
         <button className={`btn w-16 ${playing ? 'btn-on' : ''}`} onClick={togglePlay} aria-pressed={playing} aria-label={playing ? 'Pause' : 'Play'}>{playing ? '❚❚ Pause' : '▶ Play'}</button>
         <button className="btn num" title="Forward one Earth day" aria-label="Forward one day" onClick={() => stepTime(86400_000)}>+1d</button>
-        <button className="btn num" title="Go forward about 29.5 Earth days" aria-label="Forward one lunar day" onClick={() => stepTime(SYNODIC_MONTH_DAYS * 86400_000)}>☾»</button>
-        <select aria-label="Playback speed" className="btn num bg-ink" value={speed} onChange={(e) => setSpeed(+e.target.value)}>
-          {SPEEDS.map((s) => <option key={s} value={s}>{s < 3600 ? `${s / 60} min/s` : s < 86400 ? `${s / 3600} h/s` : `${s / 86400} d/s`}</option>)}
+        <button className="btn whitespace-nowrap" title="Go forward about 29.5 Earth days" aria-label="Forward one lunar day" onClick={() => stepTime(SYNODIC_MONTH_DAYS * 86400_000)}>+1 lunar day</button>
+        <select aria-label="Playback speed" className="btn bg-ink" value={speed} onChange={(e) => setSpeed(+e.target.value)}>
+          {SPEEDS.map((s) => <option key={s} value={s}>{speedLabel(s)}</option>)}
         </select>
       </div>
       <div className="flex flex-col justify-start pt-[6px] shrink-0 w-20" aria-hidden>
@@ -86,7 +96,7 @@ export function Timeline() {
             which clipped or overlapped the bars whenever this text wrapped to two lines). */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-[10px] label normal-case tracking-normal">
           <span className="text-white/70">{timelineHeading}</span>
-          <span className="num text-white/50">{statLine}</span>
+          <span className="num text-white/50" title={statFull}>{statLine}</span>
         </div>
         <svg ref={ref} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-[84px] block cursor-crosshair select-none" role="img" aria-label={summary}
           onPointerDown={(e) => { dragging.current = true; (e.target as Element).setPointerCapture?.(e.pointerId); setTime(toTime(e.clientX)); }}

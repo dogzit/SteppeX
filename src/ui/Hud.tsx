@@ -26,7 +26,7 @@ export function Hud({ onPalette, onMethodology, onTour, compact = false, siteDra
   return (
     <header data-tools-open={toolsOpen} className="app-hud absolute top-0 inset-x-0 z-40 flex flex-wrap items-stretch justify-between p-4 gap-3 pointer-events-none">
       <div className="glass rounded-xl px-4 py-2.5 pointer-events-auto shrink-0 flex flex-col justify-center">
-        <div className="label">NASA Space Apps 2026 · CLPS</div>
+        <div className="label">NASA Space Apps 2026</div>
         <h1 className="text-lg font-semibold tracking-tight leading-tight whitespace-nowrap">LUNAR <span className="text-solar">NAVIGATOR</span></h1>
       </div>
       <div className="glass rounded-xl px-4 py-2 pointer-events-auto flex items-center gap-4 shrink-0">

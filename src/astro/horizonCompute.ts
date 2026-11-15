@@ -22,7 +22,10 @@ export function computeHorizon(lat: number, lon: number, dem: DemSampler, o: Hor
   const h0 = dem.heightAt(lat, lon);
   const siteH = Number.isNaN(h0) ? 0 : h0;
   const Rs = R_M + siteH + eye;
-  const la0 = lat * DEG, lo0 = lon * DEG, sLa0 = Math.sin(la0), cLa0 = Math.cos(la0);
+  // At exactly ±90° cos(lat) is ~6e-17 and every azimuth collapses onto two meridians (the shipped south-pole profile
+  // had three distinct values). Step a hair off the pole: 1e-4° is 3 m, far below any DEM pixel.
+  const latC = Math.max(-89.9999, Math.min(89.9999, lat));
+  const la0 = latC * DEG, lo0 = lon * DEG, sLa0 = Math.sin(la0), cLa0 = Math.cos(la0);
   const step0 = Math.max(dem.resolutionM * 0.5, 20);
   let samples = 0;
   for (let i = 0; i < n; i++) {

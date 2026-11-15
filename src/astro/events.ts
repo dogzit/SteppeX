@@ -53,10 +53,24 @@ export function clearanceAt(site: Site, hz: HorizonProfile, body: 'sun' | 'earth
   if (body === 'sun') return sky.sun.el - horizonAt(hz, sky.sun.az) + sunOffset(o);
   return sky.earth.el - horizonAt(hz, sky.earth.az) - o.earthMarginDeg;
 }
-/** Bisection between a sample where the body is up/down and the next where it flipped. ±1 s. */
+/**
+ * Bisection between a sample where the body is up/down and the next where it flipped (±1 s precision).
+ * The bracket comes from the interpolated table, the bisection from the exact ephemeris. Near a grazing crossing they
+ * can disagree at one edge (the table is good to ~0.0015°), so the exact sign change may lie just outside [tA, tB].
+ * Without this check the loop walked to tB and returned hh:59:59.56 (up to ~1 h late, found by the JPL audit).
+ */
 export function refine(site: Site, hz: HorizonProfile, body: 'sun' | 'earth', tA: number, tB: number, o: Options): number {
-  let a = tA, b = tB, fa = clearanceAt(site, hz, body, a, o);
-  for (let k = 0; k < 40 && b - a > 1000; k++) { const m = (a + b) / 2, fm = clearanceAt(site, hz, body, m, o); if ((fm > 0) === (fa > 0)) { a = m; fa = fm; } else b = m; }
+  const f = (t: number) => clearanceAt(site, hz, body, t, o);
+  let a = tA, b = tB, fa = f(a);
+  const fb = f(b);
+  if ((fa > 0) === (fb > 0)) {
+    const w = tB - tA, fBefore = f(a - w), fAfter = f(b + w);
+    const crossBefore = (fBefore > 0) !== (fa > 0), crossAfter = (fAfter > 0) !== (fb > 0);
+    if (crossBefore && (!crossAfter || Math.abs(fa) <= Math.abs(fb))) { b = a; a -= w; fa = fBefore; }
+    else if (crossAfter) { a = b; fa = fb; b += w; }
+    else return Math.abs(fa) <= Math.abs(fb) ? tA : tB; // grazing touch with no exact crossing: nearest approach
+  }
+  for (let k = 0; k < 40 && b - a > 1000; k++) { const m = (a + b) / 2, fm = f(m); if ((fm > 0) === (fa > 0)) { a = m; fa = fm; } else b = m; }
   return (a + b) / 2;
 }
 

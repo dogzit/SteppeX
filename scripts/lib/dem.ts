@@ -10,7 +10,9 @@ export function loadGlobal(base = '.cache/ldem_16'): DemSampler {
 export function loadPolar(base: string, flipY = false): DemSampler | null {
   if (!existsSync(`${base}.img`)) return null;
   const d = readDem(base); const scale = +d.label.MAP_SCALE, center = +d.label.CENTER_LATITUDE as -90 | 90;
-  const proj = polarProject(center, scale, +d.label.LINE_PROJECTION_OFFSET - 0.5, +d.label.SAMPLE_PROJECTION_OFFSET - 0.5);
+  // PDS LOLA polar products: 1-based I = x/MAP_SCALE + N/2 + 0.5 (dsmap_polar.cat), so the 0-based index of the pole is
+  // (N-1)/2, which is exactly *_PROJECTION_OFFSET (e.g. 1905.5 for N = 3812). The earlier '- 0.5' shifted terrain by half a pixel.
+  const proj = polarProject(center, scale, +d.label.LINE_PROJECTION_OFFSET, +d.label.SAMPLE_PROJECTION_OFFSET);
   const p = flipY ? (lat: number, lon: number) => { const r = proj(lat, lon); return r && ([r[0], d.height - 1 - r[1]] as [number, number]); } : proj;
   return makeRasterSampler(d.data, d.width, d.height, d.scale, p, scale, `LOLA LDEM polar ${scale} m/px`);
 }

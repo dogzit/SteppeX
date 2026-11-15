@@ -12,7 +12,7 @@
 | 1:05 | Timeline, lunar month → year | Click Year | "Sunlight, Earth, both. Click anywhere to jump. Here is a full year of polar seasons." |
 | 1:20 | Compare | Open Compare → Same date, nearby sites → drag slip to +7 d | "Slip the launch a week: deltas light up instantly. One site loses 50 points, its neighbour barely moves. That is the decision." |
 | 1:40 | Explorer mode | Toggle Explorer | "Same engine, plain language: why the poles are hard, in three cards. There is a guided tour for classrooms." |
-| 1:50 | Methodology | Press ? | "Validated against JPL Horizons to 0.009° and against published polar illumination studies. Everything we do not model is listed here." |
+| 1:50 | Methodology | Press ? | "Validated against JPL Horizons to 0.005° and against published polar illumination studies. Everything we do not model is listed here." |
 | 2:00 | Globe | Press ⌘K, type "Apollo 11", Enter | "Fifty-seven years of landings, one tool. Thank you." |
 
 ## Talking points
@@ -24,6 +24,6 @@
 ## 5-slide pitch
 1. **The question** — CLPS and Artemis land where sunlight and Earth visibility change by the hour and by the hill. Planners need answers in seconds, not SPICE scripts.
 2. **The tool** — one screenshot: globe + dashboard + timeline. Pick site, pick date, read the score. Lander view shows the real horizon.
-3. **The science** — IAU Moon frame with libration, LOLA DEM horizon sweeps, disc-fraction sunsets, bisection-timed events. Validation table: Horizons 0.009°, Gläser agreement.
+3. **The science** — IAU Moon frame with libration, LOLA DEM horizon sweeps, disc-fraction sunsets, bisection-timed events. Validation table: Horizons 0.0045°, Gläser agreement.
 4. **The decision** — compare mode screenshot with a +7 d slip and red/green deltas; nearby-sites mode; CSV/JSON; shareable URL.
 5. **Impact and next** — Explorer mode and tour for classrooms; next: full-resolution south-pole heatmaps and PSR overlays, panel-geometry power models, relay/ground-station links, Artemis region polygons when NASA publishes them.

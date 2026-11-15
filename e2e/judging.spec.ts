@@ -34,7 +34,9 @@ test('Simple and Expert share the same site and date, with distinct levels of de
   await expect(page.getByLabel('Battery lasts in hours')).toBeHidden();
   await page.getByRole('button', { name: 'Expert', exact: true }).click();
   await expect(page.getByLabel('Battery lasts in hours')).toBeVisible();
-  await expect(page.getByLabel('Site summary')).toHaveText(summary);
+  // Same site and date, same numbers; Expert only adds the score's radio points to the sentence.
+  expect(summary).not.toContain('radio points');
+  await expect(page.getByLabel('Site summary')).toHaveText(new RegExp(`^${summary.replace(/\.$/, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}, earning [\\d.]+ of 30 radio points\\.$`));
   await expect(page.getByLabel('Set date and time (UTC)')).toHaveValue(time);
   await page.getByRole('button', { name: 'Simple', exact: true }).click();
   await expect(page.getByLabel('Battery lasts in hours')).toBeHidden();

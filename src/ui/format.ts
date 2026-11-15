@@ -4,6 +4,14 @@ export function fmtDuration(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000)); const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
   return d > 0 ? `${d}d ${pad(h)}h ${pad(m)}m` : h > 0 ? `${h}h ${pad(m)}m` : `${m}m ${pad(s % 60)}s`;
 }
+/** Shorter fmtDuration for tight one-line labels: days and hours ("11d 3h"), hours and minutes ("5h 20m"), or
+ *  minutes alone ("45m", and "0m" under a minute). No zero padding. Smaller units are cut off, not rounded, so each
+ *  number shown equals the same number in fmtDuration ("11d 03h 22m" -> "11d 3h", "0m 30s" -> "0m"). */
+export function fmtDurationShort(ms: number): string {
+  if (!Number.isFinite(ms)) return '—';
+  const s = Math.max(0, Math.round(ms / 1000)); const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+  return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
 export function fmtCountdown(ms: number): string {
   if (!Number.isFinite(ms)) return '—';
   const s = Math.max(0, Math.floor(ms / 1000)); const d = Math.floor(s / 86400);

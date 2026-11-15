@@ -36,9 +36,9 @@ export function SitePanel({ compact = false, onClose }: { compact?: boolean; onC
               <div className="label px-2 pt-2 pb-1">{GROUP_LABEL[g]}</div>
               {items.map((s) => (
                 <button key={s.id} onClick={() => selectSite(s.id)} onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)} aria-current={s.id === siteId}
-                  className={`w-full text-left px-2 py-1.5 rounded-md text-sm flex items-center justify-between gap-2 hover:bg-white/8 ${s.id === siteId ? 'bg-solar/12 text-white' : 'text-white/85'}`}>
-                  <span className="truncate">{s.name}</span>
-                  <span className={`num text-[10px] shrink-0 ${STATUS[s.status]}`}>{fmtLat(s.lat)} {fmtLon(s.lon)}</span>
+                  className={`w-full text-left px-2 py-1.5 rounded-md text-sm flex flex-col gap-0.5 hover:bg-white/8 ${s.id === siteId ? 'bg-solar/12 text-white' : 'text-white/85'}`}>
+                  <span className="leading-snug break-words">{s.name}</span>
+                  <span className={`num text-[10px] leading-tight ${STATUS[s.status]}`}>{fmtLat(s.lat)} {fmtLon(s.lon)}</span>
                 </button>
               ))}
             </div>

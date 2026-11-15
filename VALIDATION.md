@@ -1,6 +1,6 @@
 # Validation against JPL Horizons
 
-**Result: maximum angular separation 0.0090° across 1208 epochs; tolerance 0.1° — PASS.**
+**Result: maximum angular separation 0.0045° across 1208 epochs; tolerance 0.1° — PASS.**
 Enforced by `tests/horizons.test.ts` (runs offline against committed fixtures). Regenerate fixtures with `npx tsx scripts/fetch-horizons.ts`, this file with `npm run validate`.
 
 ## What is compared
@@ -17,17 +17,27 @@ Topocentric azimuth/elevation of the **Sun** and the **Earth** as seen from a po
 | Site | Note | Target | N | max sep ° | mean sep ° | max \|Δel\| ° | max \|Δaz\|·cos(el) ° | worst epoch |
 |---|---|---|---|---|---|---|---|---|
 | apollo11 | Apollo 11, equatorial | earth | 151 | 0.0036 | 0.0016 | 0.0035 | 0.0035 | 2025-01-17T19:40Z |
-| apollo11 | Apollo 11, equatorial | sun | 151 | 0.0090 | 0.0050 | 0.0086 | 0.0045 | 2024-12-12T06:43Z |
+| apollo11 | Apollo 11, equatorial | sun | 151 | 0.0045 | 0.0018 | 0.0042 | 0.0029 | 2026-07-19T22:04Z |
 | chandrayaan3 | Chandrayaan-3, high southern latitude | earth | 151 | 0.0036 | 0.0016 | 0.0033 | 0.0035 | 2025-01-17T19:40Z |
-| chandrayaan3 | Chandrayaan-3, high southern latitude | sun | 151 | 0.0090 | 0.0050 | 0.0036 | 0.0088 | 2024-12-12T06:43Z |
+| chandrayaan3 | Chandrayaan-3, high southern latitude | sun | 151 | 0.0045 | 0.0018 | 0.0027 | 0.0045 | 2026-07-19T22:04Z |
 | malapert | Malapert massif area, 5 km height | earth | 151 | 0.0036 | 0.0016 | 0.0035 | 0.0034 | 2025-01-17T19:40Z |
-| malapert | Malapert massif area, 5 km height | sun | 151 | 0.0090 | 0.0050 | 0.0029 | 0.0088 | 2024-12-12T06:43Z |
+| malapert | Malapert massif area, 5 km height | sun | 151 | 0.0045 | 0.0018 | 0.0026 | 0.0043 | 2026-07-19T22:04Z |
 | shackleton-rim | Shackleton rim, 0.1° from the pole | earth | 151 | 0.0036 | 0.0016 | 0.0035 | 0.0034 | 2025-01-17T19:40Z |
-| shackleton-rim | Shackleton rim, 0.1° from the pole | sun | 151 | 0.0090 | 0.0050 | 0.0027 | 0.0089 | 2024-12-12T06:43Z |
+| shackleton-rim | Shackleton rim, 0.1° from the pole | sun | 151 | 0.0045 | 0.0018 | 0.0026 | 0.0042 | 2026-07-19T22:04Z |
 
 ## Interpretation
 - Earth residual (~0.004°) is the accuracy of the analytic Moon-position series relative to DE441 — well below the 1.9° Earth disc.
-- Sun residual (~0.009°) is dominated by light-time + stellar aberration, which Horizons includes and we do not (expected magnitude ≈ v/c ≈ 0.006°). It shifts sunrise/sunset timing at the south pole by well under a minute, far smaller than DEM-induced horizon uncertainty.
+- Sun residual (~0.0045°): light-time and annual aberration are applied (aberration for the geocentre; the Moon's heliocentric velocity differs by ~1 km/s, ≈0.0007°). The rest is the analytic series vs DE441. Before aberration was added the Sun residual was 0.009°.
+- What this means for event times: at low and mid latitudes the Sun moves ~0.5°/h, so 0.005° is well under a minute. At the poles the Sun skims the horizon at a very shallow angle, so the same tiny angle error moves a sunrise or sunset by minutes, and by up to ~30 min when the Sun just grazes a ridge. The DEM resolution (40–720 m) is a much larger source of timing uncertainty there. Event times are found to ±1 s *precision* by bisection; that is not their *accuracy*.
+
+## Independent audit (Nov 2026)
+A separate reference built from JPL DE421 positions and NAIF's lunar orientation kernel (moon_pa_de421, frame MOON_ME_DE421) via Skyfield. It reproduces the committed Horizons fixtures to 0.00004°.
+- Sun and Earth az/el, 45 sites × 2,650 epochs (1969–2048, both poles, lon ±180°): Sun max 0.0094°, Earth max 0.0042° (before the aberration change).
+- Hourly table (ephem.bin) vs the exact path, 60,000 random times: max 0.0015°.
+- 14-day dashboard metrics, 11 sites × 8 dates: within 0.2 percentage points.
+- Horizon sweep vs an independent implementation on the same tile: identical.
+- Found and fixed: event refinement could return the far edge of an hour bracket (up to ~1 h late) when the table and the exact ephemeris disagreed by a hair at a grazing crossing; the horizon sweep was degenerate at exactly ±90° latitude; windows still open at the end of a period were reported one step too long. Regression tests: tests/audit-regressions.test.ts.
+- Found and partly fixed: the LOLA polar tiles were placed half a pixel off (the PDS label's `*_PROJECTION_OFFSET` is already the 0-based pole index; the code subtracted another 0.5). The fix reached only the "Lunar south pole" profile and custom pins. The other 9 library profiles built on polar tiles (5 at 40 m/px, 4 at 240 m/px) still use the old positions: about 20 m off on 40 m data, about 120 m on 240 m data. That includes all four sites in the Gläser table below. Rebuilding them needs the full-resolution LOLA DEMs, which are not in the repo, then `npm run data:horizons`. The remaining 21 profiles use the 1.9 km/px global grid, which the fix did not change; two of them (Chandrayaan-3, Luna-25) reach polar-tile terrain only 165 km or more from the site.
 - Topocentric parallax of the Earth (up to 0.26°) is modelled; the test would fail without it.
 - No refraction is applied on either side (the Moon has no atmosphere).
 

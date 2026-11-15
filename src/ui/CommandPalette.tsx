@@ -8,7 +8,7 @@ export interface Command { id: string; title: string; hint?: string; run: () => 
 export function useCommands(openMethodology: () => void): Command[] {
   const s = useStore(); const c = useCompare();
   return useMemo(() => {
-    const dates: [string, string][] = [['Now', new Date().toISOString()], ['Apollo 11 landing', '1969-07-20T20:17:40Z'], ['Chandrayaan-3 landing', '2023-08-23T12:32:00Z'], ['IM-1 landing', '2024-02-22T23:23:00Z'], ['Blue Ghost M1 landing', '2025-03-02T08:34:00Z'], ['Blue Ghost M1 sunset', '2025-03-16T00:00:00Z'], ['Artemis III example date (not a confirmed mission date)', '2027-07-01T00:00:00Z']];
+    const dates: [string, string][] = [['Now', new Date().toISOString()], ['Apollo 11 landing', '1969-07-20T20:17:40Z'], ['Chandrayaan-3 landing', '2023-08-23T12:32:00Z'], ['IM-1 landing', '2024-02-22T23:23:00Z'], ['Blue Ghost M1 landing', '2025-03-02T08:34:00Z'], ['Blue Ghost M1 sunset', '2025-03-16T00:00:00Z'], ['Artemis IV example landing date (not confirmed)', '2028-02-01T00:00:00Z']];
     const cmds: Command[] = [
       { id: 'v-globe', title: 'View: Globe', hint: '1', run: () => s.setView('globe') },
       { id: 'v-polar', title: 'View: South pole', hint: '2', run: () => s.setView('polar') },

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 test.beforeEach(async ({ page }) => { await page.addInitScript(() => localStorage.setItem('ln-welcome-dismissed', '1')); });
 
-const SITE = 'artemis-cr'; // Artemis III · Connecting Ridge candidate — a real south-pole site
+const SITE = 'artemis-cr'; // Artemis candidate · Connecting Ridge — a real south-pole site
 const T = '2026-11-20T12:00Z';
 
 async function openPanel(page: Page) {
