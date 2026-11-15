@@ -1,6 +1,6 @@
 # Lunar Navigator
 
-**NASA Space Apps Challenge 2026 · CLPS** · **Live: <https://steppex.vercel.app>**
+**NASA Space Apps Challenge 2026** · **Live: <https://steppex.vercel.app>**
 
 Lunar Navigator turns a landing site and a date into a straight answer: how much sunlight that spot really gets once the surrounding mountains are taken into account, and when Earth is above the horizon for a direct radio link. Every number comes from NASA LOLA elevation maps and positions checked against JPL Horizons to 0.0045°, so a mission planner, a judge or a curious visitor can all see where the answer comes from.
 
@@ -117,12 +117,14 @@ method and residual analysis are in [VALIDATION.md](VALIDATION.md).
 
 NASA Space Apps requires teams to say where and how AI was used.
 
-- **Original build:** [TEAM TO FILL IN: which AI tools were used, and for which parts of the code, text, data scripts and images.]
+- **Original build:** written by Zoloo (dogzit) and Myagmar (yorunamiss-netizen). Claude (Anthropic), via Claude Code, was used throughout for code, tests, data-pipeline scripts and documentation; 43 of 52 commits carry a `Co-Authored-By: Claude` line. ChatGPT (OpenAI) was used for UI review suggestions.
 - **Accuracy pass (branch `accuracy-fixes`):** fixes, tests and documentation edits were made with Claude (Anthropic) via Claude Code and reviewed by the team. Each of those commits carries a `Co-Authored-By: Claude` line. This includes the event-time, pole-horizon, georeferencing, aberration and URL-validation fixes, the regression tests and the independent accuracy audit summarised in VALIDATION.md.
 - Images: the Moon and Earth textures are NASA imagery (see below), not AI-generated. Do not use AI-generated images in the demo video without the visible "AI-generated" watermark Space Apps requires.
 
 ## Credits and data
 
-NASA/GSFC/Arizona State University LRO **LOLA** GDR (PDS Geosciences Node) · NASA **SVS** CGI Moon Kit (LROC WAC colour) · NASA **Blue Marble** · NASA/JPL **Horizons** · LROC / Wagner et al. 2017 (Apollo coordinates) · ISRO, CNSA, JAXA, Intuitive Machines, Firefly Aerospace, NASA LRO (recent landings) · LPSC 2024 #1695 (Artemis III candidate points) · Gläser et al. 2018 (polar illumination) · [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT) · three.js, react-three-fiber, drei, D3, Zustand, Tailwind, Vite.
+NASA/GSFC/Arizona State University LRO **LOLA** GDR (PDS Geosciences Node) · NASA **SVS** CGI Moon Kit (LROC WAC colour) · NASA **Blue Marble** · NASA/JPL **Horizons** · LROC / Wagner et al. 2017 (Apollo coordinates) · ISRO, CNSA, JAXA, Intuitive Machines, Firefly Aerospace, NASA LRO (recent landings) · LPSC 2024 #1695 (Artemis III candidate points) · Gläser et al. 2018 (polar illumination) · [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT) · React, three.js, react-three-fiber, drei, Framer Motion, D3, Zustand, Tailwind, Vite, Vitest, Playwright, Python/Pillow.
+
+Fonts: Nunito, Noto Sans and JetBrains Mono, bundled via Fontsource (no Google Fonts).
 
 Built for NASA Space Apps 2026. Not affiliated with NASA.
