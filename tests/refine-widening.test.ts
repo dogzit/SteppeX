@@ -36,7 +36,7 @@ const startTimes = (seed: number) => { const r = seeded(seed), slice = (RANGE_EN
 const iso = (t: number) => new Date(t).toISOString();
 
 /*
- * Known bug, not fixed (LIMITATIONS.md item 14): a sunrise and a sunset inside the same hourly step.
+ * Known bug, not fixed (LIMITATIONS.md item 16): a sunrise and a sunset inside the same hourly step.
  * Sun centre clearance at the south pole on 2028-11-27, from the exact calculation, with the hourly table's flag:
  *   04:00Z  table down  -0.10010°
  *   05:00Z  table down  -0.04911°

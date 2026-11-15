@@ -66,20 +66,20 @@ test('empty searches and invalid coordinates explain a next step', async ({ page
   await expect(page.getByRole('alert')).toContainText('Enter a latitude from');
 });
 
-for (const width of [390, 1440]) test(`light/dark theme ${width}: consistent controls and saved preference`, async ({ page }) => {
+for (const width of [390, 1440]) test(`dark default and saved light preference ${width}`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(start);
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark'); // dark is the default
   const dismiss = page.getByRole('button', { name: 'Dismiss getting started' });
   if (await dismiss.isVisible()) await dismiss.click();
-  await page.screenshot({ path: `test-results/light-${width}.png` });
+  await page.screenshot({ path: `test-results/dark-${width}.png` });
   if (width < 640) await page.getByRole('button', { name: 'Open menu' }).click();
   await page.getByText('More tools', { exact: true }).click();
-  await page.getByRole('button', { name: 'Dark theme', exact: true }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.getByRole('button', { name: 'Light theme', exact: true }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.screenshot({ path: `test-results/dark-${width}.png` });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light'); // the choice survives a reload
+  await page.screenshot({ path: `test-results/light-${width}.png` });
 });
 
 test('south pole uses a projected map with spaced fixed-size pins and visible shadow text', async ({ page }) => {

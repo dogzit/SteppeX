@@ -1,9 +1,18 @@
-/** Shareable URL state: ?site=id | ?lat=..&lon=.. ; t=ISO ; view ; span ; win ; sunset ; margin ; mode ; fwsun ; fwearth ; fwstart ; fwend */
-import { parseUrlState, type UrlState } from './urlParse';
-export { parseUrlState, clampTime, normLon, TIME_MIN_MS, TIME_MAX_MS, type UrlState } from './urlParse';
+/** Shareable URL state: ?site=id | ?lat=..&lon=.. ; t=ISO ; view ; span ; win ; sunset ; margin ; mode ; fwsun ; fwearth ; fwstart ; fwend ; cmp ; slip */
+import { formatCompare, parseCompare, type CompareUrlState } from './compareLink';
+import { parseUrlState, type UrlState as ParsedUrlState } from './urlParse';
+export { parseUrlState, clampTime, normLon, TIME_MIN_MS, TIME_MAX_MS } from './urlParse';
+export type { CompareScenarioUrl, CompareUrlState } from './compareLink';
+/** The validated fields (urlParse.ts) plus the compare scenarios (compareLink.ts); both parsers are pure and unit-tested. */
+export interface UrlState extends ParsedUrlState { compare?: CompareUrlState }
+
+/** Set by the compare store so a link can carry its scenarios without this module importing it. */
+let compareSnapshot: () => CompareUrlState | undefined = () => undefined;
+export function registerCompareSnapshot(fn: () => CompareUrlState | undefined) { compareSnapshot = fn; }
 export function readUrlState(): UrlState {
   if (typeof window === 'undefined') return {};
-  return parseUrlState(window.location.search);
+  const q = new URLSearchParams(window.location.search);
+  return { ...parseUrlState(window.location.search), compare: parseCompare(q.get('cmp'), q.get('slip')) };
 }
 export function writeUrlState(s: Required<Pick<UrlState, 'siteId' | 'custom' | 'timeMs' | 'view' | 'span' | 'windowDays' | 'sunsetDef' | 'earthMarginDeg' | 'mode'>> & { fwSunHours?: number; fwEarthHours?: number; fwSelStart?: number | null; fwSelEnd?: number | null }) {
   const q = new URLSearchParams();
@@ -22,6 +31,14 @@ export function writeUrlState(s: Required<Pick<UrlState, 'siteId' | 'custom' | '
     q.set('fwstart', new Date(s.fwSelStart).toISOString());
     q.set('fwend', new Date(s.fwSelEnd).toISOString());
   }
-  const url = `${window.location.pathname}?${q.toString()}`;
+  // Appended raw rather than through URLSearchParams: the compare grammar is query-safe already,
+  // and encoding it would also re-encode every other parameter, changing the shape of old links.
+  let qs = q.toString();
+  const cmp = compareSnapshot();
+  if (cmp && cmp.scenarios.length) {
+    qs += `&cmp=${formatCompare(cmp)}`;
+    if (cmp.slipDays !== 0) qs += `&slip=${cmp.slipDays}`;
+  }
+  const url = `${window.location.pathname}?${qs}`;
   if (url !== window.location.pathname + window.location.search) window.history.replaceState(null, '', url);
 }

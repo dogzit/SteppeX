@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 export type Theme = 'light' | 'dark';
-function savedTheme(): Theme { try { return localStorage.getItem('ln-theme') === 'dark' ? 'dark' : 'light'; } catch { return 'light'; } }
+/** Dark by default: the scene is space, and light panels over it read as glare. */
+function savedTheme(): Theme { try { return localStorage.getItem('ln-theme') === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } }
 export const useTheme = create<{ theme: Theme; toggle: () => void }>((set) => ({ theme: savedTheme(), toggle: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })) }));
 function apply(theme: Theme) {
   if (typeof document === 'undefined') return;

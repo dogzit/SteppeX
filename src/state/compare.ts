@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { SITES } from '@/data/sites';
 import { DEG } from '@/astro';
 import { useStore, resolveSite, type CustomSite } from './store';
+import { readUrlState, writeUrlState, registerCompareSnapshot } from './url';
 
 export interface Scenario { key: string; siteId: string; custom: CustomSite | null; offsetDays: number }
 interface CompareState {
@@ -13,8 +14,19 @@ interface CompareState {
 let seq = 0;
 const fromCurrent = (): Scenario => { const s = useStore.getState(); return { key: `s${++seq}`, siteId: s.siteId, custom: s.custom, offsetDays: 0 }; };
 
+/** Scenarios from a shared link, keeping only ids this build actually knows about. */
+function fromUrl() {
+  const c = readUrlState().compare;
+  if (!c) return null;
+  const scenarios = c.scenarios
+    .filter((s) => s.siteId === 'custom' || SITES.some((x) => x.id === s.siteId))
+    .map((s) => ({ key: `s${++seq}`, siteId: s.siteId, custom: s.custom, offsetDays: s.offsetDays }));
+  return scenarios.length ? { scenarios, slipDays: c.slipDays } : null;
+}
+const initial = fromUrl();
+
 export const useCompare = create<CompareState>((set, get) => ({
-  open: false, scenarios: [], slipDays: 0,
+  open: !!initial, scenarios: initial?.scenarios ?? [], slipDays: initial?.slipDays ?? 0,
   setOpen: (open) => set((st) => ({ open, scenarios: open && st.scenarios.length === 0 ? [fromCurrent()] : st.scenarios })),
   setSlip: (slipDays) => set({ slipDays }),
   addCurrent: () => set((st) => (st.scenarios.length >= 4 ? st : { scenarios: [...st.scenarios, fromCurrent()] })),
@@ -30,3 +42,14 @@ export const useCompare = create<CompareState>((set, get) => ({
   },
   reset: () => set({ scenarios: [fromCurrent()], slipDays: 0 }),
 }));
+
+// A link carries the comparison only while the panel is open, so an untouched session keeps the
+// link shape it has always had.
+registerCompareSnapshot(() => {
+  const c = useCompare.getState();
+  return c.open && c.scenarios.length ? { slipDays: c.slipDays, scenarios: c.scenarios.map(({ siteId, custom, offsetDays }) => ({ siteId, custom, offsetDays })) } : undefined;
+});
+if (typeof window !== 'undefined') {
+  let timer = 0;
+  useCompare.subscribe(() => { window.clearTimeout(timer); timer = window.setTimeout(() => writeUrlState(useStore.getState()), 400); });
+}

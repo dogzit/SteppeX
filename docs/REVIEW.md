@@ -67,4 +67,31 @@ Deferred optional items:
 
 The numeric reference examples deliberately use the reviewer's original 0° radio clearance; new sessions default to 5°, which changes radio visibility and score, not solar timing.
 
-Screenshots: docs/screens/review-simple-390.png, review-simple-1440.png and review-expert-1440.png. Historical smoke screenshots are left at their earlier committed versions to avoid unrelated binary churn. All six phase commits are local; this work has not been pushed or deployed to steppex.vercel.app.
+Screenshots: docs/screens/review-simple-390.png, review-simple-1440.png and review-expert-1440.png. Historical smoke screenshots are left at their earlier committed versions to avoid unrelated binary churn.
+
+Status: all six phase commits, plus the later visual pass, are pushed to `main` and deployed. The reviewed build is live at <https://steppex.vercel.app>. Deployment runs through the repository's Vercel Git integration, so a push to `main` publishes; the live bundle hash was checked against the local `dist/` build.
+
+## Stretch: south-pole sunlight map and peak finder
+
+Added after the review above, with the same rule: every number comes from the existing engine.
+
+`src/astro/illumination.ts` is pure and unit-tested; it composes `siteSeries`, `visibility` and
+`windows` and derives nothing itself. Checked against the committed VALIDATION.md figures before
+use: Connecting Ridge C1, C2 and Shackleton rim S reproduce 82.5 / 72.3 / 88.2 % solar visibility
+and 76.8 / 66.2 / 83.4 % average illumination exactly.
+
+`scripts/build-polar-illumination.ts` sweeps a 256 × 256 polar-stereographic grid covering 5° of
+colatitude, 51 468 cells inside the disc, one horizon per cell at 2° azimuth steps over 250 km, then
+a year of hourly samples per cell against the shared body-fixed series. 9.4 minutes single-threaded.
+Grid figures agree with a full 1° sweep at the same point to within 0.1 percentage point.
+
+The peak ranking does not trust the grid. A 1.19 km cell is far coarser than the few hundred metres
+over which polar illumination changes: the cell next to Connecting Ridge C1 reads 66.1 % where the
+site itself reads 77.9 %. So the top 30 cells are searched locally at the full 1° sweep, ±1200 m at
+400 m then ±450 m at 90 m, and the best point found is what is reported. That puts peak 1 at
+89.441°S 137.558°W with 87.0 % of 2026 in sunlight, against the 88.0 % Gläser et al. (2018) give for
+that ridge at the same 2 m eye height.
+
+Shipped data grows by 1.07 MB: a 1 048 576-byte grid (year, twelve months, Earth visibility, longest
+darkness) and a 26 kB JSON carrying the twelve peaks with their full horizon profiles. Neither is
+fetched until the sunlight map or the peak list is opened, which an end-to-end test enforces.
