@@ -6,5 +6,3 @@ playwright-report
 *.local
 .DS_Store
 
-# Work in progress: regenerate with scripts/build-polar-illumination.ts
-public/data/polar-illumination.*

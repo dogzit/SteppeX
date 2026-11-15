@@ -16,4 +16,4 @@
 ## 6 Polish + audiences ✅
 ✅ Planner/Explorer (callouts driven by live data, 5-step guided tour) · ✅ boot intro + Earth-side cinematic fly-in · ✅ ⌘K palette (sites, dates, views, actions), shortcuts (Space ←→ 1/2/3 G C M T ?) · ✅ event toasts (sunrise/sunset/Earthrise/Earthset, aria-live) · ✅ Methodology panel · ✅ ARIA labels, keyboard focus, reduced-motion, colour+glyph signals, WebGL fallback · ✅ README, DEMO.md (shot list + 5 slides), LIMITATIONS.md, VALIDATION.md · ✅ commit
 ## 7 Stretch
-⬜ heatmap · ⬜ PSR / eternal-light · ✅ real planets in the sky (instead of real stars) · ⬜ narrated tour · ⬜ kiosk · ✅ compact Sites/Details drawers + responsive header/timeline (390/880/1440 px)
+✅ south-pole illumination heatmap (year + month, 256² grid) · ✅ peaks-of-eternal-light finder · ⬜ PSR overlay · ✅ real planets in the sky (instead of real stars) · ⬜ narrated tour · ⬜ kiosk · ✅ compact Sites/Details drawers + responsive header/timeline (390/880/1440 px)

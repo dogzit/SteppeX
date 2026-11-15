@@ -21,6 +21,15 @@ export const getLibraryHorizon = (id: string) => library.get(id);
 let worker: Worker | null = null, seq = 0;
 const pending = new Map<number, (p: HorizonProfile) => void>();
 const customCache = new Map<string, HorizonProfile>();
+/**
+ * Pre-place a profile that was computed offline at full fidelity, so a pin dropped on one of the
+ * peak-of-eternal-light results reports the same figure the ranking used, rather than the coarser
+ * one the worker would derive from the downsampled tiles.
+ */
+export function seedCustomHorizon(lat: number, lon: number, el: Float32Array, label: string, resolutionM: number) {
+  customCache.set(`${lat.toFixed(4)},${lon.toFixed(4)}`, { stepDeg: 360 / el.length, el, source: 'lola', label, resolutionM });
+}
+
 export function requestCustomHorizon(lat: number, lon: number): Promise<HorizonProfile> {
   const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   const hit = customCache.get(key); if (hit) return Promise.resolve(hit);

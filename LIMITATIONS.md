@@ -12,10 +12,12 @@
 9. **Lander view**: Earth's axial orientation is approximate; the star field is procedural (decorative), not a catalogue.
 10. **Time range**: the precomputed table covers 2023–2031; other dates fall back to exact ephemeris (slower, still correct). Event searches stop at 400 days (60 days for planets).
 11. **Timeline sampling**: 2 min / 20 min / 2 h for day / month / year views; terrain flicker shorter than the step can be missed in the year view.
-12. **Compact layouts** use Sites/Details drawers below 1280 px and have been checked at 390 × 844 and 880 × 900. Dedicated kiosk and short landscape-screen layouts remain unfinished.
+12. **The south-pole sunlight map is a 1.2 km grid.** Each cell is one horizon sweep at its centre, computed at 2° azimuth steps rather than the 1° used for sites, so a cell describes its centre point and not the ground around it. Given limitation 1, that is the dominant uncertainty: neighbouring cells on a rim crest can differ by tens of percentage points. The map covers 5° of colatitude, which is the 40 m/px DEM's coverage, and is blank beyond it.
+13. **"Peaks of eternal light" is a ranking, not a survey.** It takes the brightest grid cells, keeps them 8 km apart so one ridge cannot fill the list, then recomputes each at the full 1° horizon resolution. A finer grid would find brighter points between the cells sampled here, and the published 20 m/px studies do. The figures are for one reference year; the Moon's 18.6-year nodal cycle shifts them.
+14. **Compact layouts** use Sites/Details drawers below 1280 px and have been checked at 390 × 844 and 880 × 900. Dedicated kiosk and short landscape-screen layouts remain unfinished.
 
 ## Next steps
-- South-pole **illumination heatmap** (fraction of a chosen month in sunlight / Earth view) from a build-time horizon grid, PSR overlay and a "peak of eternal light" finder.
+- Finer illumination grids near the pole, and a permanently-shadowed-region overlay derived from the same sweep.
 - **Higher-resolution tiles on demand** (LOLA 5–20 m/px around the pole) and user-set eye height.
 - Panel-geometry power estimates and simple thermal/battery survival margins.
 - Ground-station and relay visibility; antenna pattern masks per azimuth.
