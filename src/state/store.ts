@@ -16,8 +16,8 @@ export const SPEEDS = [60, 600, 3600, 6 * 3600, 86400, 7 * 86400] as const; // s
 interface State {
   timeMs: number; setTime: (ms: number) => void; stepTime: (deltaMs: number) => void;
   playing: boolean; speed: number; togglePlay: () => void; setSpeed: (s: number) => void;
-  siteId: string; custom: CustomSite | null;
-  selectSite: (id: string) => void; setCustom: (c: CustomSite) => void;
+  siteId: string; custom: CustomSite | null; prevSiteId: string;
+  selectSite: (id: string) => void; setCustom: (c: CustomSite) => void; clearCustom: () => void;
   view: ViewMode; setView: (v: ViewMode) => void;
   span: Span; setSpan: (s: Span) => void;
   windowDays: number; setWindowDays: (d: number) => void;
@@ -36,9 +36,11 @@ const url = readUrlState();
 export const useStore = create<State>((set) => ({
   timeMs: url.timeMs ?? Date.now(), setTime: (timeMs) => set({ timeMs }), stepTime: (d) => set((s) => ({ timeMs: s.timeMs + d })),
   playing: false, speed: 3600, togglePlay: () => set((s) => ({ playing: !s.playing })), setSpeed: (speed) => set({ speed }),
-  siteId: url.siteId ?? 'artemis-cr', custom: url.custom ?? null,
+  siteId: url.siteId ?? 'artemis-cr', custom: url.custom ?? null, prevSiteId: 'artemis-cr',
   selectSite: (siteId) => set((s) => ({ siteId, flyToken: s.flyToken + 1 })),
-  setCustom: (custom) => set((s) => ({ custom, siteId: 'custom', flyToken: s.flyToken + 1 })),
+  // Dropping a pin remembers where you were, so removing it can put you back.
+  setCustom: (custom) => set((s) => ({ custom, siteId: 'custom', prevSiteId: s.siteId === 'custom' ? s.prevSiteId : s.siteId, flyToken: s.flyToken + 1 })),
+  clearCustom: () => set((s) => ({ custom: null, siteId: s.prevSiteId, flyToken: s.flyToken + 1 })),
   view: url.view ?? 'globe', setView: (view) => set((s) => ({ view, flyToken: s.flyToken + 1 })),
   span: url.span ?? 'month', setSpan: (span) => set({ span }),
   windowDays: url.windowDays ?? 14, setWindowDays: (windowDays) => set({ windowDays }),

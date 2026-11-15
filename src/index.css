@@ -45,7 +45,7 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   .app-hud > :nth-child(3) > [aria-label="Panels"] { display: none; }
   .phone-timebar { position: absolute; left: 8px; right: 8px; bottom: max(8px, env(safe-area-inset-bottom)); z-index: 20; border-radius: 12px; padding: 6px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
   .phone-timebar .btn { min-height: 40px; padding: 8px 10px; }
-  .compact-drawer { top: auto; height: min(55dvh, 480px); bottom: calc(76px + env(safe-area-inset-bottom)); left: 8px; right: 8px; }
+  .compact-drawer { top: auto; height: min(46dvh, 400px); bottom: calc(76px + env(safe-area-inset-bottom)); left: 8px; right: 8px; }
   .compact-drawer > :first-child { padding: 10px; }
   .compact-drawer > :first-child > :first-child { flex-wrap: wrap; }
   .app-timeline { left: 8px; right: 8px; bottom: max(8px, env(safe-area-inset-bottom)); padding: 8px; grid-template-columns: 60px minmax(0, 1fr); }
@@ -94,8 +94,9 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   .app-hud[data-tools-open="true"] .phone-toolbar { position: sticky; top: 0; z-index: 1; }
 }
 
-/* Sky, felt, saffron and turquoise: a Mongolian-inspired, contrast-first palette. */
-:root, :root[data-theme="light"] {
+/* Sky, felt, saffron and turquoise: a Mongolian-inspired, contrast-first palette.
+   Dark is the default and the bare :root, so the page never flashes a light frame. */
+:root[data-theme="light"] {
   color-scheme: light;
   --color-ink: #f8f4ea;
   --color-solar: #8b4c00;
@@ -117,7 +118,7 @@ html, body, #root { height: 100%; margin: 0; background: var(--color-ink); color
   --scene-text: #e4edf5;
   --scene-dim: #a9bccd;
 }
-:root[data-theme="dark"] {
+:root, :root[data-theme="dark"] {
   color-scheme: dark;
   --color-ink: #071827;
   --color-solar: #f5c56d;

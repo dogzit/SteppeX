@@ -6,3 +6,4 @@ export * from './events';
 export * from './ephemTable';
 export * from './bodies';
 export * from './findWindow';
+export * from './illumination';

@@ -50,8 +50,8 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
 
   return (
     <aside className={compact ? 'compact-drawer absolute inset-x-4 top-28 bottom-36 z-30 glass rounded-xl flex flex-col overflow-hidden' : 'absolute right-4 top-28 bottom-36 z-20 w-[25rem] max-w-[calc(100vw-2rem)] glass rounded-xl flex flex-col overflow-hidden'} aria-label="Site details">
-      <div className="p-4 border-b border-white/10">
-        <div className="flex items-start justify-between gap-3">
+      <div className="px-3 py-2.5 border-b border-white/10">
+        <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="label">Selected site</div>
             <h2 className="text-base font-semibold leading-tight break-words" title={site.name}>{site.name}</h2>
@@ -59,11 +59,14 @@ export function Dashboard({ explorer = false, compact = false, onClose }: { expl
             <div hidden={explorer} className="num text-[10px] text-white/45" title="Location on the Moon where Earth is directly overhead">Earth is overhead at {lib.lat.toFixed(2)}° {lib.lon.toFixed(2)}°</div>
             {!explorer && <span className={`label inline-flex border rounded-full px-2 py-0.5 mt-1 ${conf[1]}`}>{conf[0]}</span>}
           </div>
-          {onClose && <button className="btn shrink-0" onClick={onClose} aria-label="Close site details">✕</button>}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {site.id === 'custom' && <button className="btn px-2" onClick={() => useStore.getState().clearCustom()} title="Remove this pin and go back to the last site" aria-label="Remove pin">Remove pin</button>}
+            {onClose && <button className="btn px-2.5" onClick={onClose} aria-label="Close site details">✕</button>}
+          </div>
         </div>
       </div>
 
-      <div ref={scroll} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+      <div ref={scroll} className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-3">
       <p className="text-sm leading-relaxed" aria-label="Site summary">{siteSummary(stats, night)}</p>
 
         {live.sun.el > 0 && live.sunFrac === 0 && <p className="text-sm text-solar">☾ Sun is up, but a mountain is blocking it. This site is in shadow.</p>}

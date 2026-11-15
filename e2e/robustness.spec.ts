@@ -61,3 +61,22 @@ test('a link without a comparison keeps its original shape', async ({ page }) =>
   expect(page.url()).not.toContain('cmp=');
   expect(page.url()).not.toContain('slip=');
 });
+
+test('a custom pin can be dropped and taken back off', async ({ page }) => {
+  await page.addInitScript(dismissHint);
+  await page.goto(`/?site=apollo11&t=${T}&nointro`);
+  await page.waitForTimeout(3500);
+  await page.mouse.click(820, 400);
+  const details = page.locator('aside[aria-label="Site details"]');
+  await expect(details.getByText('Custom site')).toBeVisible();
+  await page.waitForTimeout(700); // the URL is written on a 400 ms debounce
+  expect(page.url()).toContain('lat=');
+
+  await details.getByRole('button', { name: 'Remove pin' }).click();
+  await expect(details.getByText('Custom site')).toHaveCount(0);
+  await page.waitForTimeout(700);
+  expect(page.url()).toContain('site=apollo11'); // back to where the viewer was before pinning
+  expect(page.url()).not.toContain('lat=');
+  // A library site has nothing to remove.
+  await expect(details.getByRole('button', { name: 'Remove pin' })).toHaveCount(0);
+});

@@ -1,0 +1,1 @@
+{"grid":24,"halfAngleDeg":2.5,"year":2026,"noData":255,"cellKm":12.64,"layers":["year","month01..month12","earth","darkHours"],"sweep":{"azStepDeg":2,"maxDistKm":250,"eyeHeightM":2},"dem":"NASA LRO LOLA / PDS: 40 m/px inside 85 deg S, 240 m/px beyond","peaks":[]}
