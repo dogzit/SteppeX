@@ -36,18 +36,21 @@ const startTimes = (seed: number) => { const r = seeded(seed), slice = (RANGE_EN
 const iso = (t: number) => new Date(t).toISOString();
 
 /*
- * Known bug, not fixed (LIMITATIONS.md item 14): the grazing fallback in nextEvents().
+ * Known bug, not fixed (LIMITATIONS.md item 14): a sunrise and a sunset inside the same hourly step.
  * Sun centre clearance at the south pole on 2028-11-27, from the exact calculation, with the hourly table's flag:
+ *   04:00Z  table down  -0.10010°
  *   05:00Z  table down  -0.04911°
- *   06:00Z  table UP    -0.00030°   <- the table (good to ~0.0015°) shows the Sun up for this one hour
+ *   06:00Z  table UP    -0.00030°
  *   07:00Z  table down  -0.08043°
- * nextEvents() takes [05:00, 06:00] as the sunrise bracket. refine() finds no sign change there, widens to 04:00-07:00
- * (-0.10010° / -0.08043°), still finds none, and returns the nearer edge: 06:00:00Z. Clearance 2 s either side of it is
- * -0.00025° / -0.00034°, so the Sun does not rise there. The real sunrise is 10:57:03Z (refinedWindows() gets it right:
- * night 02:27:31Z -> 10:57:03Z), so the reported time is about 5 h early. Seen from 2 of the 2,000 start times below.
- * When nextEvents() is fixed, the it.fails test below starts failing: then remove `.fails` and KNOWN_FAKE_SUNRISE.
+ * Between 05:00 and 06:00 the exact calculation has the Sun's centre above the ridge for 152 s, 05:57:14.7Z to
+ * 05:59:46.7Z (peak 0.00129° at about 05:58:45Z). At 1-min steps the table (good to ~0.0015°) shows it up 05:56-06:00.
+ * nextEvents() takes [05:00, 06:00] as the sunrise bracket. The exact state is down at 04:00, 05:00, 06:00 and 07:00, so
+ * refine() finds no sign change, even after widening, and returns the nearer edge: 06:00:00Z. That is 2 min 45 s after
+ * the sunrise and 13 s after the glimpse ends (clearance 2 s either side: -0.00025° / -0.00034°), so the direction check
+ * fails. refinedWindows() misses the 152 s as well: night 02:27:31Z -> 10:57:03Z. Seen from 2 of the 2,000 start times.
+ * When nextEvents() returns 05:57:14.7Z, the it.fails test below starts failing: then remove `.fails` and KNOWN_LATE_SUNRISE.
  */
-const KNOWN_FAKE_SUNRISE = { id: 'south-pole', t: Date.parse('2028-11-27T06:00:00Z') };
+const KNOWN_LATE_SUNRISE = { id: 'south-pole', t: Date.parse('2028-11-27T06:00:00Z') };
 
 describe('refine() widening on polar terrain', () => {
   it.fails('south-pole: the next sunrise after 2028-11-26T02:27:51Z is a real crossing (known grazing-fallback bug)', () => {
@@ -68,7 +71,7 @@ describe('refine() widening on polar terrain', () => {
           const t = ev[name]; if (t === null) continue;
           const before = clearanceAt(site, hz, body, t - EPS, o), after = clearanceAt(site, hz, body, t + EPS, o);
           if (!(t > now)) failures.push(`${id} now=${iso(now)} ${name}=${iso(t)} is not after now (${(t - now) / 1000} s)`);
-          if (id === KNOWN_FAKE_SUNRISE.id && name === 'sunrise' && t === KNOWN_FAKE_SUNRISE.t) continue; // covered by it.fails above
+          if (id === KNOWN_LATE_SUNRISE.id && name === 'sunrise' && t === KNOWN_LATE_SUNRISE.t) continue; // covered by it.fails above
           if (rising ?!(before <= 0 && after > 0) : !(before > 0 && after <= 0))
             failures.push(`${id} now=${iso(now)} ${name}=${iso(t)} wrong direction: clearance ${before.toFixed(5)}° at -2 s, ${after.toFixed(5)}° at +2 s`);
         }
