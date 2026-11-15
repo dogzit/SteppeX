@@ -13,7 +13,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
     <div className="intro-screen absolute inset-0 z-[60] grid place-items-center cursor-pointer" onClick={onDone} role="status" aria-live="polite">
       <div className="intro-glow" aria-hidden />
       <div className="text-center relative">
-        <div className="label mb-2">NASA Space Apps 2026 · CLPS</div>
+        <div className="label mb-2">NASA Space Apps 2026</div>
         <div className="text-5xl font-semibold tracking-tight">LUNAR <span className="text-solar">NAVIGATOR</span></div>
         <div className="label normal-case mt-3 text-sm">Sunlight, terrain and Earth contact for every landing site</div>
         <div className="mt-6 space-y-1 text-left inline-block">
