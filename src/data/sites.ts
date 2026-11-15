@@ -5,7 +5,7 @@ export type Confidence = 'high' | 'medium' | 'approx';
 export interface SiteRecord { id: string; name: string; group: SiteGroup; lat: number; lon: number; heightKm?: number; date?: string; status: SiteStatus; confidence: Confidence; source: string; note?: string }
 export const SITES = (raw as { sites: SiteRecord[] }).sites;
 export const SITE_BY_ID = new Map(SITES.map((s) => [s.id, s]));
-export const GROUP_LABEL: Record<SiteGroup, string> = { artemis: 'Artemis candidate sites', clps: 'CLPS landers', reference: 'Polar reference points', international: 'International missions', apollo: 'Apollo', historic: 'Robotic pioneers' };
+export const GROUP_LABEL: Record<SiteGroup, string> = { artemis: 'Artemis candidate sites', clps: 'Commercial landers (NASA CLPS)', reference: 'Polar reference points', international: 'International missions', apollo: 'Apollo', historic: 'Robotic pioneers' };
 export const GROUP_ORDER: SiteGroup[] = ['artemis', 'clps', 'reference', 'international', 'apollo', 'historic'];
 /** Decimal places shown for coordinates everywhere in the UI (header, site list, custom-pin input display).
  *  Internal storage (the store's `custom` value, URL params) always keeps full precision — only the
