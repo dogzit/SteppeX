@@ -5,7 +5,7 @@ import { useStore, useActiveSite, SPAN_MS, SPEEDS, type Span } from '@/state/sto
 import { useOptions } from '@/state/useMetrics';
 import { useHorizon } from '@/state/useHorizon';
 import { useViewportWidth } from './useViewport';
-import { fmtDate, fmtDateTime, fmtDuration, fmtPct } from './format';
+import { fmtDate, fmtDateTime, fmtDuration, fmtDurationShort, fmtPct } from './format';
 
 /** "1 day" / "29.5 days" / "365.3 days" — derived from the actual span duration in ms, not hardcoded. */
 function fmtSpanDays(days: number): string {
@@ -59,7 +59,11 @@ export function Timeline() {
   // different intervals by design, not a computation bug (verified: both read the same siteSeries/
   // visibility/windows pipeline and the same useOptions()/useHorizon() values).
   const timelineHeading = `Timeline · ${fmtSpanDays(spanMs / 86400_000)} · ${fmtDate(start)} → ${fmtDate(start + spanMs)}`;
-  const statLine = span === 'day' ? `Sunlight ${fmtPct(data.sunFrac)}` : `Sunlight ${fmtPct(data.sunFrac)} · Earth visible ${fmtPct(data.earthFrac)} · Both ${fmtPct(data.bothFrac)} · Longest sunlight ${fmtDuration(Math.max(0, ...data.sun.map((w) => w.end - w.start)))}`;
+  const longestSunMs = Math.max(0, ...data.sun.map((w) => w.end - w.start));
+  const statFull = span === 'day' ? `Sunlight ${fmtPct(data.sunFrac)}` : `Sunlight ${fmtPct(data.sunFrac)} · Earth visible ${fmtPct(data.earthFrac)} · Both ${fmtPct(data.bothFrac)} · Longest sunlight ${fmtDuration(longestSunMs)}`;
+  // Short wording on screen, full wording in the tooltip. The full line is ~570 px of monospace text and
+  // the header row has only ~490 px at 1440, so it wrapped to two lines and made the footer 20 px taller.
+  const statLine = span === 'day' ? statFull : `Sunlight ${fmtPct(data.sunFrac)} · Earth ${fmtPct(data.earthFrac)} · Both ${fmtPct(data.bothFrac)} · Longest sunlight ${fmtDurationShort(longestSunMs)}`;
   const summary = `${timelineHeading}. ${site.name}: sunlit ${fmtPct(data.sunFrac)}, Earth visible ${fmtPct(data.earthFrac)}, both ${fmtPct(data.bothFrac)}.`
     + (fwSelStart !== null && fwSelEnd !== null ? ` Highlighted mission window: ${fmtDateTime(fwSelStart)} to ${fmtDateTime(fwSelEnd)}.` : '');
 
@@ -92,7 +96,7 @@ export function Timeline() {
             which clipped or overlapped the bars whenever this text wrapped to two lines). */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-[10px] label normal-case tracking-normal">
           <span className="text-white/70">{timelineHeading}</span>
-          <span className="num text-white/50">{statLine}</span>
+          <span className="num text-white/50" title={statFull}>{statLine}</span>
         </div>
         <svg ref={ref} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-[84px] block cursor-crosshair select-none" role="img" aria-label={summary}
           onPointerDown={(e) => { dragging.current = true; (e.target as Element).setPointerCapture?.(e.pointerId); setTime(toTime(e.clientX)); }}

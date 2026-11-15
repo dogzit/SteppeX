@@ -178,6 +178,20 @@ test.describe('1440 and 390 sanity', () => {
     await page.screenshot({ path: 'docs/screens/r-1440-initial.png' });
   });
 
+  test('1440px: the timeline stat line stays on one line, so the footer does not grow', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url());
+    const footer = page.locator('footer');
+    const row = footer.locator('div.flex.flex-wrap.items-baseline > span');
+    for (const span of ['29.5 days', 'Year']) {
+      await footer.getByRole('button', { name: span, exact: true }).click();
+      const heading = (await row.nth(0).boundingBox())!, stat = (await row.nth(1).boundingBox())!;
+      expect(stat.height).toBeLessThanOrEqual(heading.height + 1); // one line, like the heading
+      expect((await footer.boundingBox())!.height).toBeLessThan(150);
+      await expect(row.nth(1)).toHaveAttribute('title', /Earth visible \d+% · Both \d+% · Longest sunlight \d/);
+    }
+  });
+
   test('390px: drawers are reachable and the page has no horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     const errors: string[] = [];
